@@ -17,7 +17,7 @@ The core SG-Camo package. Contains all interface signatures, events and behaviou
 
 THe key to this core lies in it's set of behaviours and interface signatures. These can easily be composed into other display-based classes (from other packages or directly onto native Flash display classes) to immediately hook up these display classes with a necessary set of basic interactive behaviours for your application.
 
-A common set of interface signatures within sg.camo.interfaces allows light-weight cross-platform compatability and access across different application domains from external .swfs as long as the interfaces are already loaded into the parent domain at the beginning of the application.
+A common set of bridge-based interface signatures within sg.camo.interfaces allows light-weight cross-platform interaction across different application domains from external .swfs as long as the interfaces are already loaded into the current application domain at the beginning of the application.
 
 Interfaces are kept as simple & minimalistic as possible so that they can be implemented (or extended) by other classes or packages outside of SG-Camo. Unlike the regular Camo Core, there are absolutely no concrete display-based implementations in this package.
 

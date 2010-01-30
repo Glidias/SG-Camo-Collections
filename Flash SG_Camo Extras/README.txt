@@ -1,1 +1,1 @@
-Extras/examples for testing bonus stuffs goes here.
+Extras/examples for running stuffs under the sg.camoextras package and testing them.

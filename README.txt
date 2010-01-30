@@ -1,6 +1,6 @@
 Powered in various ways by the Flash Camouflage display framework created by Jesse Freeman, http://flashcamo.flashartofwar.com/ , SG Camo Collections is a personal suite branch of display classes, UI, behaviours and interfaces developed specifically for AS3/Flash development.
 
-Here's the current run-down of what you'll find in the repository:
+Here's the current run-down of what you'll find in the src code:
 
 ////////////////////////////////////////
 camo.core

@@ -38,7 +38,6 @@ Any misc. Camo/SG-Camo mplementation for the Gaia Flash Framework goes here.
 
 
 IN DEVELOPMENT:
-
 ////////////////////////////////////////
 sg.camogxml
 ////////////////////////////////////////

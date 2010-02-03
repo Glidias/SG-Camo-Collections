@@ -1,9 +1,9 @@
-﻿package sg.camo.scrollables.gs 
+﻿package sg.camo.greensock.scrollables
 {
 	import sg.camo.interfaces.IScrollable;
 	import sg.camo.scrollables.OpenCloseScrollGuide;
-	import gs.TweenLite;
-	import gs.easing.Strong;
+	import com.greensock.TweenLite;
+	import com.greensock.easing.Strong;
 	
 	/**
 	* Basic open/close tween-scrolling using GS-TweenLite. 

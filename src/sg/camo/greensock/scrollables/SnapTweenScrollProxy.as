@@ -1,9 +1,9 @@
-﻿package sg.camo.scrollables.gs {
+﻿package sg.camo.greensock.scrollables {
 	
 	import sg.camo.interfaces.IScrollable;
 	import sg.camo.scrollables.SnapGuide;
-	import gs.TweenLite;
-	import gs.easing.Strong;
+	import com.greensock.TweenLite;
+	import com.greensock.easing.Strong;
 	
 	/**
 	* Basic snap-to-item length tween-scrolling using GS TweenLite. 

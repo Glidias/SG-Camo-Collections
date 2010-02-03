@@ -1,25 +1,28 @@
-﻿package sg.camo.scrollables.gs {
-	
+﻿package sg.camo.greensock.scrollables 
+{
+	import sg.camo.scrollables.ScrollGuide;
 	import sg.camo.interfaces.IScrollable;
-	import sg.camo.scrollables.IndexSnapScrollGuide;
-	import gs.TweenLite;
-	import gs.easing.Strong;
-	
+	import com.greensock.TweenLite;
+	import com.greensock.easing.Strong;
 	/**
-	* Snaps to IndexSnapScrollGuide with tweening.
-	* 
-	* @see sg.camo.scrollables.IndexSnapScrollGuide
-	* 
-	* @author Glenn Ko
-	*/
-	public class IndexTweenScrollProxy extends IndexSnapScrollGuide {
-		
+	 * Basic tween scrolling based on ratio using GS TweenLite. 
+	 * Also includes adjustable public properties to adjust tweening.
+	 * 
+	 * @author Glenn Ko
+	 */
+	public class TweenScrollProxy extends ScrollGuide
+	{
+		/** Total maximum duration allowed for tween */
 		public var maxDuration:Number = 1.3;
-		public var itemLengthDuration:Number = .5;  // average duraiton per item
-		public var ease:Function = Strong.easeOut;
-		public var onUpdate:Function = null;
 		
-		public function IndexTweenScrollProxy(targ:IScrollable=null) {
+		/**  Average duration per item length */
+		public var itemLengthDuration:Number = .5;  
+		
+		/** Defaulted to <code>Strong.easeOut</code>. */
+		public var ease:Function = Strong.easeOut;
+		
+		public function TweenScrollProxy(targ:IScrollable=null) 
+		{
 			super(targ);
 		}
 		
@@ -27,13 +30,13 @@
 			var dest:Number = _x + getDestScrollH(ratio);
 			var tarDuration:Number = (diffX(dest) / itemLength) * itemLengthDuration;
 			tarDuration = tarDuration > maxDuration ? maxDuration : tarDuration;
-			TweenLite.to(scrollContent, tarDuration, { x:dest, ease:ease, onUpdate:onUpdate } );
+			TweenLite.to(scrollContent, tarDuration, { x:dest, ease:ease } );
 		}
 		override public function set scrollV (ratio:Number):void {
 			var dest:Number = _y + getDestScrollV(ratio);
 			var tarDuration:Number = (diffY(dest) / itemLength) * itemLengthDuration;
 			tarDuration = tarDuration > maxDuration ? maxDuration : tarDuration;
-			TweenLite.to(scrollContent, tarDuration, { y:dest, ease:ease, onUpdate:onUpdate } );
+			TweenLite.to(scrollContent, tarDuration, { y:dest, ease:ease } );
 		}
 		
 		override public function resetScroll():void {
@@ -43,10 +46,9 @@
 		
 		override public function destroy():void {
 			TweenLite.killTweensOf(scrollContent);
-			onUpdate = null;
 			super.destroy();
 		}
 		
 	}
-	
+
 }

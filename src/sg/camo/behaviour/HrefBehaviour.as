@@ -1,11 +1,14 @@
 ﻿package sg.camo.behaviour {
 	import flash.display.Sprite;
+	import flash.net.URLRequest;
 
 	import flash.events.Event;
 	import flash.events.IEventDispatcher;
 	import sg.camo.interfaces.IBehaviour;
 	import flash.events.TextEvent;
 	import flash.events.MouseEvent;
+	
+	import flash.net.navigateToURL;
 	
 	/**
 	* Hooks up DisplayObject with buttonMode behaviour to also dispatch a TextEvent.LINK bubbling event upon click.
@@ -20,6 +23,9 @@
 		protected var _targDispatcher:IEventDispatcher;
 		
 		public static const NAME:String = "HrefBehaviour";
+		
+		public var navigateNow:Boolean = false;
+		public var window:String = "_blank";
 		
 		/**
 		 * Constructor
@@ -49,7 +55,12 @@
 				spr.buttonMode = true;
 				spr.mouseChildren = false;
 			}
+			
+			
+			if (!navigateNow) navigateNow = href.substr(0, 7) === "http://" || href.substr(0, 9) === "mailto://";
+			
 			_targDispatcher.addEventListener(MouseEvent.CLICK, hrefHandler, false , 0, true);
+			
 		}
 		
 		/**
@@ -57,6 +68,10 @@
 		 * @param	e	
 		 */
 		protected function hrefHandler(e:Event):void {
+			if (navigateNow) {
+				navigateToURL( new URLRequest(href), window );
+				return;
+			}
 			_targDispatcher.dispatchEvent( new TextEvent(TextEvent.LINK, true, false, href) );
 		}
 		

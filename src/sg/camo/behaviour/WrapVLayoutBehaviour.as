@@ -30,7 +30,11 @@
 		override protected function addChildHandler(e:CamoChildEvent):DisplayObject  {
 			var lastChild:DisplayObject = super.addChildHandler(e);
 			var child:DisplayObject = e.child;
-			if (lastChild == null) return null;
+			if (lastChild == null) {
+				child.x = 0;
+				child.y = 0;
+				return null;
+			}
 			child.x = lastChild.x;
 			if (child.y + child.height > _disp.height) {
 				child.x  += child.width+spacing;
@@ -41,18 +45,29 @@
 		
 		override protected function removeChildHandler(e:CamoChildEvent):void  {
 			var index:int =  _disp.getChildIndex(e.child);
-			var w:Number = e.child.height + spacing;  // space occupied by removed chld
-			var lastChild:DisplayObject;
-			if (index < _disp.numChildren - 1) {
-				var i:int = index;
-				while (i < _disp.numChildren) {
-					var child:DisplayObject = _disp.getChildAt(i);
-					var tar:Number = child.y - w - child.height;
-					child.y = tar < 0 ? _disp.height - w : child.y - w ;
-					if (tar < 0) child.x -= child.width + spacing;
-					i++;
-					lastChild = child;
+		
+			var i:int = index + 1;
+			
+			while (i < _disp.numChildren) {
+				var prevChild:DisplayObject = prevChild ? prevChild : index - 1 > -1 ? _disp.getChildAt(index - 1) : null;
+				var child:DisplayObject = _disp.getChildAt(i);
+				
+				if (prevChild) {
+					child.y = prevChild.y + prevChild.height + spacing;
+					child.x = prevChild.x;
+					if (child.y + child.height > _disp.height) {
+						child.x  += child.width+spacing;
+						child.y = 0;
+					}
 				}
+				else {
+					child.x = 0;
+					child.y = 0;
+				}
+				
+				prevChild = child;
+				i++;
+				
 			}
 		}
 		

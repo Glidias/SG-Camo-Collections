@@ -1,7 +1,7 @@
 ﻿package sg.camo {
 	
 	/**
-	* Display settings for SG Camo
+	* Display settings for SG Camo (Might consider depreciating this )
 	* 
 	* 
 	* @author Glenn Ko
@@ -10,7 +10,7 @@
 		
 		/** 
 		 * Default global settings to recursively search for and destroy all children of AbstractDisplay(s) during
-		 * disposal.
+		 * disposal. 
 		 * 
 		 * @see sg.camo.interfaces.IDestroyable
 		 * @see sg.camo.interfaces.IRecursableDestroyable 

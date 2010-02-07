@@ -20,12 +20,14 @@
 		protected var _clickEvent:Event;
 		
 		public static const NAME:String = "ClickEventBehaviour";
+		
+		public var genericBubbles:Boolean = true;
 	
 		/**
 		 * Constructor
 		 * @param	clickEvent	An event to dispatch when the targetted display object instance is clicked.
 		 */
-		public function ClickEventBehaviour(clickEvent:Event) {
+		public function ClickEventBehaviour(clickEvent:Event=null) {
 			_clickEvent = clickEvent;
 		}
 		
@@ -38,6 +40,11 @@
 		public function get clickEvent():Event {
 			return _clickEvent;
 		}
+		
+		public function set genericEvent(type:String):void {
+			_clickEvent = new Event(type, genericBubbles);
+		}
+		
 		
 		// -- IBehaviour
 		
@@ -67,6 +74,7 @@
 		 * @param	e	(Event)
 		 */
 		protected function clickHandler(e:Event):void {
+			if (_clickEvent == null) return;
 			_targDispatcher.dispatchEvent( _clickEvent );
 		}
 		

@@ -40,6 +40,9 @@
 		public static function numChildrenOf(dispCont:DisplayObjectContainer):int {
 			return dispCont is IAncestorSprite  ? (dispCont as IAncestorSprite).$numChildren : dispCont.numChildren;
 		}
+		public static function getContains(dispCont:DisplayObjectContainer, disp:DisplayObject):Boolean {
+			return dispCont is IAncestorSprite  ? (dispCont as IAncestorSprite).$contains(disp) : dispCont.contains(disp);
+		}
 
 		
 	}

@@ -28,6 +28,9 @@
 		function $getChildByName(name : String) : DisplayObject;
 		function $getChildAt(index : int) : DisplayObject;
 		function $removeChildAt(index : int) : DisplayObject
+		
+		function get $width():Number;
+		function get $height():Number;
 	}
 	
 }

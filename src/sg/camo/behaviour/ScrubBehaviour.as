@@ -135,6 +135,7 @@
 				trace("ScrubBehaviour activate() halt. No target movieClip found!");
 				return;
 			}
+			
 			_targDispatcher = chkDispatcher;
 			AncestorListener.addEventListenerOf(_targDispatcher, _listenScrubForward, handleScrubForward);
 			AncestorListener.addEventListenerOf(_targDispatcher, _listenScrubBackward, handleScrubBackward);

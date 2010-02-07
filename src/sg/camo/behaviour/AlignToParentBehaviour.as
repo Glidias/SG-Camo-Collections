@@ -29,7 +29,7 @@
 		/** @private */
 		protected var _disp:DisplayObject;
 		/** @private */
-		protected var _dispCont:IDisplay;
+		protected var _dispCont:DisplayObjectContainer;
 		
 		
 		/** Alignment constant */ public static const NONE:int = 0;
@@ -91,14 +91,56 @@
 				trace("AlignToParentBehaviour activate() halt. targ as DisplayObject is null!");
 				return;
 			}
-			_dispCont = targ.parent is IDisplay ? targ.parent as IDisplay : targ.parent != null ? targ.parent.parent as IDisplay: null;
+			_dispCont = _disp.parent is IDisplay ? _disp.parent  : _disp.parent.parent is IDisplay ? _disp.parent.parent : _disp.parent;
 			if (_dispCont == null) {
-				trace("AlignToParentBehaviour activate() halt. targ  has no IDisplay parent/grandparent or parent is null!");
-				// TO DO: perhaps onAddedToStageListener to activate behaviour? 
+				//trace("AlignToParentBehaviour activate() halt. targ  has no IDisplay parent/grandparent or parent is null!");
+				_disp.addEventListener(Event.ADDED_TO_STAGE, onAddedToStageInit, false, 0, true);
 				return;
 			}
-			
-			
+			initAlignToParent();
+
+		}
+		
+		public function set horizontalAlign(str:String):void {
+			var value:int;
+			switch (str) {
+				case "left": value = NONE;
+				break;
+				case "middle":
+				case "centre":
+				case "center": value = MIDDLE;
+				break;
+				case "right": value = RIGHT;
+				break;
+				default:return;
+				
+			}
+			align = value;
+		}
+		public function set verticalAlign(str:String):void {
+			var value:int;
+			switch (str) {
+				case "top": value = NONE;
+				break;
+				case "middle":
+				case "centre":
+				case "center":  value = MIDDLE;
+				break;
+				case "bottom": value = BOTTOM;
+				break;
+				default:return;
+			}
+			vAlign = value;
+		}
+		
+		private function onAddedToStageInit(e:Event):void {
+			_disp.removeEventListener(Event.ADDED_TO_STAGE, onAddedToStageInit);
+			_dispCont = _disp.parent is IDisplay ? _disp.parent  : _disp.parent.parent is IDisplay ? _disp.parent.parent : _disp.parent;
+		
+			initAlignToParent();
+		}
+		
+		protected function initAlignToParent():void {
 			switch (_corner) {
 				case TOP_LEFT: left = _disp.x; top = _disp.y; break;
 				case TOP_RIGHT: right = _dispCont.width - (_disp.x + _disp.width); top = _disp.y; break;
@@ -106,15 +148,7 @@
 				case BOTTOM_RIGHT: right = _dispCont.width - (_disp.x + _disp.width); bottom =  _dispCont.height - (_disp.y + _disp.height); break;
 				default:  break;
 			}
-			
-			/*
-			if (vAlign > 0) {
-				top = -1; bottom = Number.NaN;
-			}
-			if (align > 0) {
-				left = -1; right = Number.NaN;
-			}*/
-			
+			alignDisplayHandler();
 			AncestorListener.addEventListenerOf(_dispCont as IEventDispatcher, CamoDisplayEvent.DRAW, alignDisplayHandler);
 		}
 		
@@ -122,9 +156,9 @@
 		 * Listens to CamoDisplayEvent.DRAW events to re-update alignment positions on-the-fly.
 		 * @param	e
 		 */
-		protected function alignDisplayHandler(e:Event):void {
-			_disp.x = align > 0 ?  align<2 ?  (_dispCont.width - _disp.width)*.5 +xOffset : 	_dispCont.width - _disp.width + xOffset :    validateXOffset();
-			_disp.y = vAlign > 0 ? vAlign < 2 ? ( _dispCont.height - _disp.height) * .5 + yOffset: _dispCont.height - _disp.height	+ yOffset :   validateYOffset();
+		protected function alignDisplayHandler(e:Event=null):void {
+			_disp.x = align > 0 ?  align<2 ?  (_dispCont.width - _disp.width)*.5 +xOffset : 	_dispCont.width - _disp.width + xOffset :    validateXOffset() + xOffset;
+			_disp.y = vAlign > 0 ? vAlign < 2 ? ( _dispCont.height - _disp.height) * .5 + yOffset: _dispCont.height - _disp.height	+ yOffset :   validateYOffset() + yOffset;
 		}
 		
 		

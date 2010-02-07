@@ -1,15 +1,22 @@
 ﻿package sg.camo.greensock.behaviour 
 {
+	import com.greensock.core.TweenCore;
 	import com.greensock.TweenLite;
 	import flash.events.IEventDispatcher;
 	import sg.camo.interfaces.IBehaviour;
 	import sg.camo.greensock.EasingMethods;
 	import flash.events.Event;
-	import flash.events.MouseEvent;
 	import sg.camo.ancestor.AncestorListener;
+	import sg.camo.greensock.CreateGSTweenVars;
 	
 	/**
-	 * ...
+	 * A tween behaviour execution with initial starting values and destination values
+	 * along a linear reversible tween. Also allows setting of restore variables
+	 * when destroy() is being called. You need to set the 'eventTo' and 'eventReturn'
+	 * event types to determine what events trigger a tween to the "toVars" and "fromVars"
+	 * respectively. Also provides flags for one shot tweens or immediately executing
+	 * the tween upon activation even if no event triggers are specified.
+	 * 
 	 * @author Glenn Ko
 	 */
 	public class TweenEventBehaviour implements IBehaviour
@@ -18,27 +25,34 @@
 		public static const NAME:String = "TweenEventBehaviour";
 		public var duration:Number = .6;
 		
+		public var tweenClass:Class = TweenLite;
+		
 		//public var toTimeScale:Number = 1;
 		//public var fromTimeScale:Number = -1;
+		
 		protected var _fromVars:Object;
 		public function set fromVars(vars:Object):void {
-			_fromVars = createVarsFromObj(vars);
+			_fromVars = CreateGSTweenVars.createVarsFromObject(vars);
 		}
 		protected var _toVars:Object;
 		public function set toVars(vars:Object):void {
-			_toVars = createVarsFromObj(vars);
+			_toVars = CreateGSTweenVars.createVarsFromObject(vars);
 		}
 		
-		// Whether to perform restore tween/action upon destroy()
-		public var restoreDuration:Number = 0;
+		// Set restore variables to perform restore tween/action upon destroy()
 		protected var _restoreVars:Object;
 		public function set restoreVars(vars:Object):void {
-			_restoreVars = createVarsFromObj(vars);
+			_restoreVars = CreateGSTweenVars.createVarsFromObject(vars);
 		}
+		public var restoreDuration:Number = 0;  // specify a number to perform a restore tween
+		
+		public var oneShot:Boolean = false;
+		public var renderNow:Boolean = false;
+		
 		
 		// Event info and easing
-		public var eventTo:String = MouseEvent.ROLL_OVER;
-		public var eventReturn:String = MouseEvent.ROLL_OUT;
+		public var eventTo:String;
+		public var eventReturn:String;
 		public var easeTo:Function = null;
 		public var easeReturn:Function = null;
 		public function set ease(func:Function):void {
@@ -46,8 +60,8 @@
 			easeReturn = func;
 		}
 	
-		
-		private var _tweenLite:TweenLite;
+
+		private var _tweenCore:TweenCore;
 		private var _targDispatcher:IEventDispatcher;
 		
 		
@@ -68,61 +82,38 @@
 				throw new Error("TweenEventBehaviour activate() failed! No from/to variables specified");
 				return;
 			}
-			TweenLite.to(targ, .1, _fromVars ).complete();
-			_tweenLite = TweenLite.to(targ, duration, _toVars );
-			_tweenLite.pause();
+			new tweenClass(targ, .1, _fromVars ).complete();
+			_tweenCore = new tweenClass(targ, duration, _toVars );
+			_tweenCore.pause();
 			
 			var evDisp:IEventDispatcher = targ as IEventDispatcher;
-			AncestorListener.addEventListenerOf(evDisp, eventTo, tweenToHandler);
-			AncestorListener.addEventListenerOf(evDisp, eventReturn, tweenBackHandler);
+			if (eventTo) AncestorListener.addEventListenerOf(evDisp, eventTo, tweenToHandler);
+			if (eventReturn) AncestorListener.addEventListenerOf(evDisp, eventReturn, tweenBackHandler);
+			if (renderNow) _tweenCore.restart();
 			_targDispatcher = evDisp;
 		}
 		
-		/**
-		 * Note: Only supports processing to ease and numeric values from strings
-		 * @param	obj		Object of string values to convert
-		 * @return
-		 */
-		public static function createVarsFromObj(obj:Object):Object {
-			var retObj:Object = { };
-			for (var i:String in obj) {
-				var val:String = obj[i];
-				retObj[i]  = i != "ease" ? val.charAt(0) != "!" ? Number(val) : strToObj(val.substr(1)) : EasingMethods.getEasingMethod(val);
-			}
-			return retObj;
-		}
-		
-		public static function strToObj(data:String, dataDelimiter : String = "|" ,propDelimiter : String = "@"):Object {
-			var dataContainer:Object = { };
-			var list : Array = data.split( dataDelimiter );
-			var total : Number = list.length;
 
-			for (var i : Number = 0; i < total ; i ++) 
-			{
-				var prop : Array = list[i].split( propDelimiter );
-				dataContainer[prop[0]] = Number( prop[1] );
-			}
-			
-			return dataContainer;
-		}
 		
 		protected function tweenToHandler(e:Event):void {
 		
-			_tweenLite.restart();
+			_tweenCore.restart();
+			if (oneShot) AncestorListener.removeEventListenerOf(e.currentTarget as IEventDispatcher, eventTo, tweenToHandler);
 		}
 		
 		protected function tweenBackHandler(e:Event):void {
-			_tweenLite.reverse();
+			_tweenCore.reverse();
+			if (oneShot) AncestorListener.removeEventListenerOf(e.currentTarget as IEventDispatcher, eventReturn, tweenToHandler);
 		}
 		
 		public function destroy():void {
 			if (_targDispatcher == null) return;
 
-			AncestorListener.removeEventListenerOf(_targDispatcher, eventTo, tweenToHandler);
-			AncestorListener.removeEventListenerOf(_targDispatcher, eventReturn, tweenBackHandler);
+			if (eventTo) AncestorListener.removeEventListenerOf(_targDispatcher, eventTo, tweenToHandler);
+			if (eventReturn) AncestorListener.removeEventListenerOf(_targDispatcher, eventReturn, tweenBackHandler);
 			if (_restoreVars) {
-				if (restoreDuration == 0)  TweenLite.to(_targDispatcher, .1, _restoreVars ).complete();
-				else TweenLite.to(_targDispatcher, restoreDuration, _restoreVars );
+				if (restoreDuration == 0)  new tweenClass(_targDispatcher, .1, _restoreVars ).complete();
+				else new tweenClass(_targDispatcher, restoreDuration, _restoreVars );
 				
 			}
 		}

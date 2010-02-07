@@ -30,6 +30,7 @@
 	{
 		function get __width():Number;
 		function get __height():Number;
+		
 	}
 	
 }

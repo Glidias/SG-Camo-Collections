@@ -2,7 +2,7 @@
 {
 	
 	/**
-	 * Marker interface for classes that can retrieve definitions
+	 * Marker interface for classes that can retrieve class definitions
 	 * @author Glenn Ko
 	 */
 	public interface IDefinitionGetter 
@@ -22,7 +22,7 @@
 		function hasDefinition(str:String):Boolean;
 		
 		/**
-		 * Returns a string of definition names available for use
+		 * Returns a string of class definition names available for use
 		 */
 		function get definitions():Array;
 	}

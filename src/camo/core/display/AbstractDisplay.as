@@ -134,6 +134,13 @@ package camo.core.display
 		public function get __height():Number {
 			return _height;
 		}
+		
+		public function get $width():Number {
+			return super.width;
+		}
+		public function get $height():Number {
+			return super.height;
+		}
 
 
 		public override function set height( value : Number ) : void
@@ -436,10 +443,11 @@ package camo.core.display
 	
 		override public function addChild(child : DisplayObject) : DisplayObject
 		{
+			var retChild:DisplayObject = display.addChild( child );
 			dispatchEvent( new CamoChildEvent( CamoChildEvent.ADD_CHILD, child ) );
 			_bubblingDraw = true;
 			invalidate( );
-			return display.addChild( child );
+			return retChild;
 		}
 
 	
@@ -495,7 +503,7 @@ package camo.core.display
 	
 		public function $getChildIndex(child : DisplayObject) : int
 		{
-			return display.getChildIndex( child );
+			return super.getChildIndex( child );
 		}
 
 	

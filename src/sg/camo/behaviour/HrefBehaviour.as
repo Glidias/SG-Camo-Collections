@@ -50,11 +50,6 @@
 				trace("HrefBehaviour activate() halt. targ as IEventDispatcher is null!");
 				return;
 			}
-			var spr:Sprite = _targDispatcher as Sprite;
-			if (spr != null) {
-				spr.buttonMode = true;
-				spr.mouseChildren = false;
-			}
 			
 			
 			if (!navigateNow) navigateNow = href.substr(0, 7) === "http://" || href.substr(0, 9) === "mailto://";

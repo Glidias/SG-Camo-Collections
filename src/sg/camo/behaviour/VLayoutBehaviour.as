@@ -1,8 +1,5 @@
 ﻿package sg.camo.behaviour {
 	import flash.display.DisplayObject;
-	import flash.display.DisplayObjectContainer;
-	import sg.camo.ancestor.AncestorListener;
-	import sg.camo.interfaces.IBehaviour;
 	import camo.core.events.CamoChildEvent;
 	
 	/**
@@ -20,46 +17,30 @@
 	* 
 	* @author Glenn Ko
 	*/
-	public class VLayoutBehaviour implements IBehaviour {
+	public class VLayoutBehaviour extends BaseDisplayListLayout {
 		
 		public static const NAME:String = "VLayoutBehaviour";
-		protected var _disp:DisplayObjectContainer;
+	
 		public var spacing:Number = 0;
 		
 		public function VLayoutBehaviour($spacing:Number=0) {
 			spacing = $spacing;
+			super(this);
 		}
 		
-		public function get behaviourName():String {
+		override public function get behaviourName():String {
 			return NAME;
 		}
 		
-		public function activate(targ:*):void {
-			_disp = (targ as DisplayObjectContainer);
-			if (_disp == null) {
-				trace("VLayoutBehaviour activate() halt. targ as DisplayObjectContainer is null!");
-				return;
-			}
-			var func:Function = AncestorListener.getAddListenerMethod(_disp);
-			func( CamoChildEvent.ADD_CHILD, addChildHandler, false, 0, true);
-			func( CamoChildEvent.REMOVE_CHILD, removeChildHandler, false, 0, true);
+		override protected function arrangeFromLastChild(child:DisplayObject, lastChild:DisplayObject=null):void {
+			child.y = lastChild!=null ? lastChild.y + lastChild.height + spacing : 0;
 		}
 		
-		public function destroy():void {
-			var func:Function = AncestorListener.getRemoveListenerMethod(_disp);
-			func( CamoChildEvent.ADD_CHILD, addChildHandler, false);
-			func( CamoChildEvent.REMOVE_CHILD, removeChildHandler, false);
-			_disp = null;
-			
+		protected function $removeChildHandler(e:CamoChildEvent):void {
+			super.removeChildHandler(e);
 		}
 		
-		protected function addChildHandler(e:CamoChildEvent):DisplayObject  {
-			var lastChild:DisplayObject = _disp.numChildren > 0 ? _disp.getChildAt(_disp.numChildren - 1) : null;
-			e.child.y = lastChild != null? lastChild.y + lastChild.height + spacing : 0;
-			return lastChild;
-		}
-		
-		protected function removeChildHandler(e:CamoChildEvent):void  {
+		override protected function removeChildHandler(e:CamoChildEvent):void  {
 			var index:int =  _disp.getChildIndex(e.child);
 			var w:Number = e.child.height + spacing;  // space occupied by removed chld
 			if (index < _disp.numChildren - 1) {

@@ -61,11 +61,6 @@
 				trace("ClickBehaviour activate() halt. targ as IEventDispatcher is null!");
 				return;
 			}
-			var spr:Sprite = _targDispatcher as Sprite;
-			if (spr != null) {
-				spr.buttonMode = true;
-				spr.mouseChildren = false;
-			}
 			AncestorListener.addEventListenerOf(_targDispatcher, MouseEvent.CLICK, clickHandler);
 		}
 		

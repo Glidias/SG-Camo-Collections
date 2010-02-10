@@ -1,5 +1,6 @@
 ﻿package sg.camo.greensock.behaviour 
 {
+	import camo.core.events.CamoDisplayEvent;
 	import com.greensock.core.TweenCore;
 	import com.greensock.TweenLite;
 	import flash.events.IEventDispatcher;
@@ -26,6 +27,14 @@
 		public var duration:Number = .6;
 		
 		public var tweenClass:Class = TweenLite;
+		
+		/**
+		 * Whether to manually dispatch CamoDisplayEvent.DRAW event bubble upon every tween update.
+		 * Normally, if the activated component doesn't dispatch a "draw" event, than
+		 * you need to set this to true to indicate resize changes which require updating  
+		 * of layouts in the parent container.
+		 */
+		public var dispatchDraw:Boolean = false;
 		
 		//public var toTimeScale:Number = 1;
 		//public var fromTimeScale:Number = -1;
@@ -85,12 +94,16 @@
 			new tweenClass(targ, .1, _fromVars ).complete();
 			_tweenCore = new tweenClass(targ, duration, _toVars );
 			_tweenCore.pause();
-			
+			if (dispatchDraw) _tweenCore.vars.onUpdate = dispatchDrawBubble;
 			var evDisp:IEventDispatcher = targ as IEventDispatcher;
 			if (eventTo) AncestorListener.addEventListenerOf(evDisp, eventTo, tweenToHandler);
 			if (eventReturn) AncestorListener.addEventListenerOf(evDisp, eventReturn, tweenBackHandler);
 			if (renderNow) _tweenCore.restart();
 			_targDispatcher = evDisp;
+		}
+		
+		protected function dispatchDrawBubble():void {
+			_targDispatcher.dispatchEvent( new CamoDisplayEvent(CamoDisplayEvent.DRAW, true) );
 		}
 		
 

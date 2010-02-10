@@ -45,6 +45,7 @@
 		override public function set txtLabel(txtField:TextField):void {
 			super.txtLabel = txtField;
 			_width = txtField.width;
+			//resize(txtField.width, textField.height);
 			
 			txtField.autoSize = txtField.getTextFormat().align; //TextFieldAutoSize.CENTER;
 			_autoSize = txtField.autoSize;

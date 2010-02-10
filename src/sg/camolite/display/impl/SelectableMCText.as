@@ -22,7 +22,7 @@
 			super(initEventType);
 			buttonMode = true;
 			mouseEnabled = true;
-			//mouseChildren = false;
+			mouseChildren = false;
 			stop();
 			selected = false;
 		}

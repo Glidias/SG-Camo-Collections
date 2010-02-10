@@ -3,6 +3,7 @@
 	import flash.display.Sprite;
 	import flash.display.DisplayObject;
 	import flash.utils.Dictionary;
+	import sg.camo.interfaces.IDestroyable;
 	import sg.camo.interfaces.IIndexable;
 	import sg.camo.interfaces.IList;
 	import flash.events.Event;
@@ -86,6 +87,10 @@
 			return valid ? disp : null;
 		}
 		
+		override public function contains(child:DisplayObject):Boolean {
+			return child.parent === display;
+		}
+		
 		/** @private */
 		protected function getIdOfItem(disp:DisplayObject):String {
 			return disp is IListItem ? (disp as IListItem).id : _targHash[disp];
@@ -101,6 +106,7 @@
 		
 		/** @private */
 		protected function removeChildFromDisplayList(disp:DisplayObject, id:String):void {
+			if (disp is IDestroyable) (disp as IDestroyable).destroy();
 			removeChild(disp);
 		}
 		

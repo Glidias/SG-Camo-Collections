@@ -62,9 +62,26 @@
 		override public function get width():Number {
 			return _width > -1 ? _width : super.width;
 		}
+		
 		override public function get height():Number {
 			return _height > -1 ? _height : super.height;
 		}
+		
+		public function set $width(val:Number):void {
+			super.width = val;
+		}
+		public function get $width():Number {
+			return super.width;
+		}
+		public function set $height(val:Number):void {
+			super.height = val;
+		}
+		public function get $height():Number {
+			return super.height;
+		}
+		
+
+		
 		public function resize(w:Number, h:Number):void {
 			_width = w > -1 ? w : _width;
 			_height = h > -1 ? h : _height;
@@ -75,6 +92,7 @@
 		 */
 		public function set txtLabel(txtField:TextField):void {
 			_textField = txtField;
+			txtField.mouseEnabled = false;
 		}
 		public function get txtLabel():TextField {
 			return _textField;

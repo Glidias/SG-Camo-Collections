@@ -82,13 +82,17 @@
 		// -- To retrieve from specific domain and cache behaviour class
 		/** @private */
 		protected function _getDefinition(str:String):Class {
-			var retClass:Class =  _appDomain.getDefinition(_domainPrefix + str) as Class;
-			if (retClass) _behHash[str]  = retClass;
+			var gotDot:Boolean = str.search(".") > -1;
+			var domainPrefix:String = gotDot ? "" : _domainPrefix;
+			var key:String = gotDot ? domainPrefix + str : str;
+			var retClass:Class =  _appDomain.getDefinition(domainPrefix + str) as Class;
+			if (retClass) _behHash[key]  = retClass;
 			return retClass;
 		}
 		/** @private */
 		protected function _hasDefinition(str:String):Boolean {
-			return _appDomain.hasDefinition(_domainPrefix + str);
+			var domainPrefix:String = str.search(".") > -1 ? "" : _domainPrefix;
+			return _appDomain.hasDefinition(domainPrefix + str);
 		}
 		
 		// -- To retrieve from current application domain and cache behaviour class

@@ -37,12 +37,15 @@
 			_width = val;
 		}
 		
+		
 		/**
 		 * Sets custom height value
 		 */
 		override public function set height(val:Number):void {
 			_height = val;
 		}
+		
+
 		
 		/**
 		 * Gets width
@@ -55,6 +58,20 @@
 		 */
 		override public function get height():Number {
 			return _height > -1 ? _height : super.height;
+		}
+		
+		
+		public function set $width(val:Number):void {
+			super.width = val;
+		}
+		public function get $width():Number {
+			return super.width;
+		}
+		public function set $height(val:Number):void {
+			super.height = val;
+		}
+		public function get $height():Number {
+			return super.height;
 		}
 		
 		/**

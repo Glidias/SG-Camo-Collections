@@ -19,49 +19,16 @@
 		protected var _downState:DisplayObject;
 		protected var _overState:DisplayObject;
 		protected var _selected:Boolean;
-		
-		protected var _disabledState:DisplayObject;
-		protected var _disabled:Boolean = false;
 	
 		
 		public function GSelectableButton() 
 		{
 			super();
-			refreshDefaultStates();
-			addEventListener(MouseEvent.CLICK, clickHandler, false, 0, true);
-		}
-		
-		protected function refreshDefaultStates():void {
 			_upState = upState;
 			_downState = downState;
 			_overState = overState;
+			addEventListener(MouseEvent.CLICK, clickHandler, false, 0, true);
 		}
-		
-		 public function set disabledState(val:DisplayObject):void {
-			 _disabledState  = val;
-		 }
-		  public function get disabledState():DisplayObject {
-			  return _disabledState
-		  }
-		
-		public function set disabled(boo:Boolean):void {
-			_disabled = boo;
-			mouseEnabled = !_selected;
-			if (_disabledState==null) return;
-			if (boo) {
-				upState = _disabledState;
-				downState = _disabledState;
-				overState = _disabledState;
-				
-			}
-			else {
-				selected = _selected;
-			}
-		}
-		public function get disabled():Boolean {
-			 return _disabled;
-		}
-		
 		
 		// -- IReflectClass
 		
@@ -91,8 +58,6 @@
 			}
 			mouseEnabled = !bool;
 		}
-		
-		
 		public function get selected ():Boolean {
 			return _selected;
 		}

@@ -41,6 +41,7 @@
 		 */
 		public function set txtLabel(txtField:TextField):void {
 			_textField = txtField;
+			txtField.mouseEnabled = false;
 		}
 		public function get txtLabel():TextField {
 			return _textField;

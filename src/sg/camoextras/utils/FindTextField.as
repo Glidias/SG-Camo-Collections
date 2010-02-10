@@ -5,7 +5,7 @@
 	import flash.text.TextField;
 	import sg.camo.interfaces.ITextField;
 	/**
-	 * Static utility that attempts to find a valid textfield reference within a particular DisplayObject
+	 * Utility that attempts to find a valid textfield reference within a particular DisplayObject
 	 * @author Glenn Ko
 	 */
 	public class FindTextField

@@ -82,7 +82,7 @@
 		// -- To retrieve from specific domain and cache behaviour class
 		/** @private */
 		protected function _getDefinition(str:String):Class {
-			var gotDot:Boolean = str.search(".") > -1;
+			var gotDot:Boolean = str.indexOf(".") > -1;
 			var domainPrefix:String = gotDot ? "" : _domainPrefix;
 			var key:String = gotDot ? domainPrefix + str : str;
 			var retClass:Class =  _appDomain.getDefinition(domainPrefix + str) as Class;
@@ -91,7 +91,8 @@
 		}
 		/** @private */
 		protected function _hasDefinition(str:String):Boolean {
-			var domainPrefix:String = str.search(".") > -1 ? "" : _domainPrefix;
+			var domainPrefix:String = str.indexOf(".") > -1 ? "" : _domainPrefix;
+			trace(domainPrefix + str);
 			return _appDomain.hasDefinition(domainPrefix + str);
 		}
 		

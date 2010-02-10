@@ -172,7 +172,7 @@
 			var arr:Array = str.split(" ");
 			for (var i:String in arr) {
 				var valStr:String = arr[i];
-				var classPrefix:String = valStr.search(".") > -1 ? "" : CLASS_PREFIX;
+				var classPrefix:String = valStr.indexOf(".") > -1 ? "" : CLASS_PREFIX;
 				var classDef:String = classPrefix + valStr;
 				arr[i] = defGetter.hasDefinition(classDef) ? defGetter.getDefinition(classDef) as Class || GSPluginVars : GSPluginVars;  
 			}

@@ -5,8 +5,7 @@
 	import camo.core.events.CamoDisplayEvent;
 	import flash.display.DisplayObject;
 	import flash.errors.IllegalOperationError;
-	import sg.camo.interfaces.IAncestorSprite;
-	
+		
 	/**
 	 * Abstract Base layout behaviour implementation using the target container's display-list 
 	 * to determine the flow of objects.

@@ -27,17 +27,18 @@
  * 	1.0  Initial version March 18, 2009</p>
  * 
  *  *  Changes made on Sept 05, 2009 - Glenn (commented)
+ * 
+ * Removed off PropertyApplication on self..
  *
  */
  
 package camo.core.display
 {
-	//import camo.core.property.PropertySelector;	
+	import flash.net.URLRequest;
 
 	public interface ICamoDisplay extends IBoxModel
 	{
 		// Camo specific
-		function applyProperties(style : Object) : void;   // PropertySelector specifics not necessary for interface
 		function rasterize() : void;
 		//function get className() : String;   // not being used publiciy
 		
@@ -47,5 +48,12 @@ package camo.core.display
 		function get zIndex():Number;
 		function get align():String;
 		function get verticalAlign():String;
+		
+		// added more supporting props
+		function set backgroundImage(value:URLRequest):void
+		
+		// added raster smoothing option
+		function set rasterSmoothing(boo:Boolean):void;
+		function get rasterSmoothing():Boolean;
 	}
 }

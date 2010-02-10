@@ -217,13 +217,6 @@ package camo.core.display
 		public function getDisplay():DisplayObject {
 			return display;
 		}
-		public function get displayWidth():Number {
-			return display.width;
-		}
-		public function get displayHeight():Number {
-			return display.height;
-		}
-
 		
 		// Exclusive add/remove stage listener functions not tied to handlers
 		protected function addStageListeners() : void

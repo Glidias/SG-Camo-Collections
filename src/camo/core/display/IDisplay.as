@@ -66,6 +66,7 @@ package camo.core.display
 		 */
 		function invalidate():void;	
 		
+		
 		// nested display
 		/**
 		 * Usually retrieves child nested display.
@@ -76,29 +77,25 @@ package camo.core.display
 		 * @return  (DisplayObject) A valid DisplayObject instance
 		 */
 		function getDisplay():DisplayObject; 
-		/**
-		 * Gets actual stipulated width of nested display instance
-		 */
-		function get displayWidth():Number;  
-		/**
-		 * Gets actual stipulated height of nested display instance.
-		 */
-		function get displayHeight():Number;
-		
+
 
 		// get/set id  (is this realy needed?)
+		/*
 		function get id() : String;
 		function set id(value : String) : void;
+		*/
 		
 		// positioning/resize controls (is this boiler plate?)
+		/*
 		function move(newX : Number,newY : Number) : void;
 		function resize(w : Number, h : Number) : void;
+		*/
 		
 		/** Clears all registered listeners. 
 		 * <br/><br/>
 		 * <i>NOTE: May consider possibly phasing this out of this method if it forces all other classes
 		 * to implement this method in an overly prescriptive way.</i> */
-		function clearEventListeners() : void;  
+		//function clearEventListeners() : void;  
 		
 		
 		// No longer needed, use specific IDestroyable interface signature if destruction is required

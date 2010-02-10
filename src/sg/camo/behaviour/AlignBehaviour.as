@@ -10,7 +10,7 @@
 	/**
 	* Performs horizontal and/or vertical aligning of display.
 	* <br/><br>
-	* AlignBehaviour uses the IDisplay's <code>displayWidth</code> and <code>displayHeight</code> properties 
+	* AlignBehaviour uses the IDisplay's <code>getDisplay()</code> display object reference  
 	* to determine the nested display child's dimensions in relation to the IDisplay container's own actual width and height,
 	* from which alignment occurs.
 	*  <br/><br/>
@@ -108,8 +108,8 @@
 
 			var disp:DisplayObject = _dispCont.getDisplay();
 			
-			if (align != AlignBehaviour.NONE) disp.x = align > 0 ?  align<2 ?  (_dispCont.width - _dispCont.displayWidth)*.5 +xOffset : 	_dispCont.width - _dispCont.displayWidth + xOffset :    disp.x + xOffset;
-			if (vAlign != AlignBehaviour.NONE) disp.y = vAlign > 0 ? vAlign < 2 ? ( _dispCont.height - _dispCont.displayHeight) * .5 + yOffset: _dispCont.height - _dispCont.displayHeight	+ yOffset :    disp.y + yOffset;
+			if (align != AlignBehaviour.NONE) disp.x = align > 0 ?  align<2 ?  (_dispCont.width - disp.width)*.5 +xOffset : 	_dispCont.width - disp.width + xOffset :    disp.x + xOffset;
+			if (vAlign != AlignBehaviour.NONE) disp.y = vAlign > 0 ? vAlign < 2 ? ( _dispCont.height - disp.height) * .5 + yOffset: _dispCont.height - disp.height	+ yOffset :    disp.y + yOffset;
 		}
 		
 		public function destroy():void {

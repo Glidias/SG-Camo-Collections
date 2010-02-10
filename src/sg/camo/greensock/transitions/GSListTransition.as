@@ -1,7 +1,6 @@
 ﻿package sg.camo.greensock.transitions 
 {
 	import camo.core.events.CamoChildEvent;
-	import com.adobe.protocols.dict.Dict;
 	import com.greensock.core.TweenCore;
 	import com.greensock.TimelineLite;
 	import com.greensock.TweenLite;

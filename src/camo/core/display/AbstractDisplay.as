@@ -33,6 +33,7 @@
 package camo.core.display 
 {
 	import flash.geom.Point;
+	import sg.camo.interfaces.IDisplayBase;
 
 	import camo.core.events.CamoDisplayEvent;
 	import camo.core.events.CamoChildEvent;
@@ -68,7 +69,7 @@ package camo.core.display
 	 * @author glenn  (changes commented with text)
 	 * 
 	 */
-	public class AbstractDisplay extends Sprite implements IDisplay, IRecursableDestroyable, IAncestorSprite
+	public class AbstractDisplay extends Sprite implements IDisplay, IDisplayBase, IRecursableDestroyable, IAncestorSprite
 	{
 		/**
 		 * The child <code>display</code> Sprite reference.
@@ -132,6 +133,24 @@ package camo.core.display
 		}
 		
 		public function get __height():Number {
+			return _height;
+		}
+		
+		public function set $__width(val:Number):void {
+			_width = val;
+			_bubblingDraw = true;
+			invalidate();
+		}
+		public function get $__width():Number {
+			return _width;
+		}
+		
+		public function set $__height(val:Number):void {
+			_height = val;
+			_bubblingDraw = true;
+			invalidate();
+		}
+		public function get $__height():Number {
 			return _height;
 		}
 		
@@ -318,6 +337,12 @@ package camo.core.display
 				_bubblingDraw = false;
 			}
 		}
+		
+		public function invalidateSize():void {
+			_bubblingDraw = true;
+			invalidate();
+		}
+		
 
 	
 		public function refresh() : void

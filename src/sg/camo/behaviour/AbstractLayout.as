@@ -59,9 +59,7 @@
 			
 		}
 		
-		protected function arrangeFromLastChild(child:DisplayObject, lastChild:DisplayObject=null):void {
-			
-		}
+
 		
 		public function destroy():void {
 			if (_disp == null) return;

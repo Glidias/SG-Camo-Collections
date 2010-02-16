@@ -10,7 +10,7 @@
 	*/
 	public class SnapScrollProxy extends SnapGuide {
 		
-		public function SnapScrollProxy(targ:IScrollable) {
+		public function SnapScrollProxy(targ:IScrollable=null) {
 			super(targ);
 		}
 		

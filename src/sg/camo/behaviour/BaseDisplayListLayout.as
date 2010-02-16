@@ -5,7 +5,8 @@
 	import camo.core.events.CamoDisplayEvent;
 	import flash.display.DisplayObject;
 	import flash.errors.IllegalOperationError;
-		
+	import sg.camo.interfaces.IAncestorSprite;
+	
 	/**
 	 * Abstract Base layout behaviour implementation using the target container's display-list 
 	 * to determine the flow of objects.
@@ -25,7 +26,7 @@
 			var child:DisplayObject = e.child;
 			var curIndex:int = _disp.getChildIndex(child);
 			var numChildren:int = _disp.numChildren;
-		
+
 			var lastChild:DisplayObject =  curIndex > 0 ? _disp.getChildAt(curIndex - 1) : null;
 			arrangeFromLastChild(child, lastChild);
 			
@@ -38,6 +39,9 @@
 			}
 		}
 		
+		protected function arrangeFromLastChild(child:DisplayObject, lastChild:DisplayObject=null):void {
+			// to implement in extended classes
+		}
 
 
 		override protected function removeChildHandler(e:CamoChildEvent):void {
@@ -63,9 +67,9 @@
 			//var gotParent:Boolean = _disp is IDisplay ? lastChild.parent === (_disp as IDisplay).getDisplay() : lastChild.parent === _disp;
 			var gotParent:Boolean =  _disp is IDisplay ? child.parent ? child.parent.parent === _disp  :  false :child.parent === _disp;
 
-			
-			if ( gotParent ) {
 				
+			if ( gotParent ) {
+					//trace("Aligning from:" +child.width);
 				var getChildIndex:Function;
 				var getChildAt:Function;
 				

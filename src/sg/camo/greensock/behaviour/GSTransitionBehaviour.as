@@ -22,13 +22,18 @@
 		
 		// constructor parameters
 		public var tweenClass:Class;
-		public var gsPluginVars:GSPluginVars;		
+		public var gsPluginVars:GSPluginVars;
+		
+		public static const TRANSITION_IN:String = "transitionIn";
+		public static const TRANSITION_IN_COMPLETE:String = "transitionInComplete";
+		public static const TRANSITION_OUT:String = "transitionOut";
+		public static const TRANSITION_OUT_COMPLETE:String = "transitionOutComplete";
 		
 		// Event parameters and callbacks
-		public var eventIn:String = "transitionIn";
-		public var eventInComplete:String = "transitionInComplete";
-		public var eventOut:String = "transitionOut";
-		public var eventOutComplete:String = "transitionOutComplete";
+		public var eventIn:String = TRANSITION_IN;
+		public var eventInComplete:String = TRANSITION_IN_COMPLETE;
+		public var eventOut:String = TRANSITION_OUT;
+		public var eventOutComplete:String = TRANSITION_OUT_COMPLETE;
 		public var bubbleComplete:Boolean = false;
 		public var oneShot:Boolean = false;
 		

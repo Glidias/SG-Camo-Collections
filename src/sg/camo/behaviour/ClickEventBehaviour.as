@@ -16,11 +16,18 @@
 		
 		/** @private */
 		protected var _targDispatcher:IEventDispatcher;
-		/** @private */
-		protected var _clickEvent:Event;
+		
+		/**
+		 * Sets custom click event to dispatch when a click occurs on target dispatcher
+		 */
+		public var clickEvent:Event;
 		
 		public static const NAME:String = "ClickEventBehaviour";
 		
+		/**
+		 * Flag to determine whether <code>genericEvent</code> setter's native Flash Event
+		 * is bubbling.
+		 */
 		public var genericBubbles:Boolean = true;
 	
 		/**
@@ -28,21 +35,15 @@
 		 * @param	clickEvent	An event to dispatch when the targetted display object instance is clicked.
 		 */
 		public function ClickEventBehaviour(clickEvent:Event=null) {
-			_clickEvent = clickEvent;
+			this.clickEvent = clickEvent;
 		}
 		
+
 		/**
-		 * Public setter to set or change click event.
+		 * Sets up a native Flash Event for the click event.
 		 */
-		public function set clickEvent(e:Event):void {
-			_clickEvent = e;
-		}
-		public function get clickEvent():Event {
-			return _clickEvent;
-		}
-		
 		public function set genericEvent(type:String):void {
-			_clickEvent = new Event(type, genericBubbles);
+			clickEvent = new Event(type, genericBubbles);
 		}
 		
 		
@@ -69,8 +70,8 @@
 		 * @param	e	(Event)
 		 */
 		protected function clickHandler(e:Event):void {
-			if (_clickEvent == null) return;
-			_targDispatcher.dispatchEvent( _clickEvent );
+			if (clickEvent == null) return;
+			_targDispatcher.dispatchEvent( clickEvent );
 		}
 		
 		public function destroy():void {

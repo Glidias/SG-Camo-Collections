@@ -9,8 +9,8 @@
 	 */
 	public interface IScrollable extends IScroll
 	{	
-		/**  A sprite container that can be used to provide scroll-wheeling support or receive focus.  */
-		function get scrollContainer ():Sprite;  		// a sprite reference to hook up focus-in/out & mousewheel enabling (including listening for content changes), -or- null if don't wish to have such support.
+		/**  A sprite container that can be used to provide scroll-wheeling support or receive focus or dispatch Event.SCROLL events.  */
+		function get scrollContainer ():Sprite;  		
 		
 		/** A displayObject or rectangle of the screen mask containing the content  */
 		function get scrollMask ():*; 

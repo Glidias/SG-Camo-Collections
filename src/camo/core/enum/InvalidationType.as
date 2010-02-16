@@ -30,10 +30,13 @@
  
 package camo.core.enum
 {
-	public class InvalidationType
+
+	public class InvalidationType
 	{
-		public static const ALL : String = "all";
-		public static const SIZE : String = "size";
-		public static const STYLES : String = "styles";
+		public static const ALL:String = "all";
+        public static const LAYOUT:String = "layout";
+        public static const SIZE:String = "size";
+        public static const STYLES:String = "styles";
+
 	}
 }

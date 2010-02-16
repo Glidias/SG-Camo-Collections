@@ -33,7 +33,6 @@
 package camo.core.display
 {
 	import flash.display.DisplayObject;	
-	import sg.camo.interfaces.IDisplayBase;
 
 	/**
 	* An IDisplay instance normally refers to a DisplayObjectContainer (usually extending from Sprite/MovieClip),
@@ -51,7 +50,7 @@ package camo.core.display
 	* <br/><br/>
 	* 
 	  */
-	public interface IDisplay extends IDisplayBase
+	public interface IDisplay
 	{
 		// --Required implementations
 		
@@ -65,6 +64,7 @@ package camo.core.display
 		 * Event.RENDER dispatched from the stage.
 		 */
 		function invalidate():void;	
+		function invalidateSize():void;
 		
 		
 		// nested display

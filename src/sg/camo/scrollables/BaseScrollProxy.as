@@ -1,5 +1,6 @@
 ﻿package sg.camo.scrollables 
 {
+	import flash.events.Event;
 	import sg.camo.interfaces.IScrollable;
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
@@ -16,6 +17,9 @@
 	{
 		/**  @private  */
 		protected var _target:IScrollable;
+		
+
+		
 		
 		// initial starting x and y values
 	
@@ -49,7 +53,6 @@
 		{
 			if (targ!=null) target = targ;
 		}
-		
 		
 		/**
 		 * Re-sets target for scrolling, updating it's initial x and y scroll content positions

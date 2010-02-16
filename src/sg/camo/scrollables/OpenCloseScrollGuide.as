@@ -39,12 +39,12 @@
 		public function getDestScrollH(ratio:Number):Number {
 			var w:Number = Math.round(scrollContent.width);
 			var initial:Number = _openReverseDirection ? w : -w;
-			return initial +  ratio * w + _x; 
+			return initial +  ratio * w + scrollMask.x; 
 		}
 		public function getDestScrollV(ratio:Number):Number {
 			var h:Number = Math.round(scrollContent.height); 
 			var initial:Number = _openReverseDirection ? h : -h;
-			return initial + ratio * h + _y;  //
+			return initial + ratio * h + scrollMask.y;  //
 		}
 		
 		override public function resetScroll():void {

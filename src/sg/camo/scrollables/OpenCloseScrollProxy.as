@@ -25,7 +25,7 @@
 		 * Constructor
 		 * @param	targ	A valid IScrollable instance. Treats it's initial scrollContent x and y values as the starting scroll content positions.
 		 */
-		public function OpenCloseScrollProxy(targ:IScrollable) 
+		public function OpenCloseScrollProxy(targ:IScrollable=null) 
 		{
 			super (targ);
 		}
@@ -51,7 +51,7 @@
 		override public function set scrollH (ratio:Number):void {
 			var w:Number = Math.round(scrollContent.width);
 			var initial:Number = _openReverseDirection ? w : -w;
-			scrollContent.x =  initial +  ratio * w + _x;  //-w + 
+			scrollContent.x =  initial +  ratio * w + scrollMask.x;  //-w + 
 		
 			//scrollContent.x += ratio == 0 ? w;
 			
@@ -63,7 +63,7 @@
 		override public function set scrollV (ratio:Number):void {
 			var h:Number = Math.round(scrollContent.height); 
 			var initial:Number = _openReverseDirection ? h : -h;
-			scrollContent.y = initial + ratio * h + _y;  //
+			scrollContent.y = initial + ratio * h + scrollMask.y;  //
 			
 			//scrollContent.visible = !(scrollContent.y == -h)
 		}

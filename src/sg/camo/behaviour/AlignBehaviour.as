@@ -6,6 +6,7 @@
 	import sg.camo.interfaces.IBehaviour;
 	import camo.core.events.CamoDisplayEvent;
 	import sg.camo.ancestor.AncestorListener;
+	import sg.camo.interfaces.IDisplayBase;
 	
 	/**
 	* Performs horizontal and/or vertical aligning of display.
@@ -29,20 +30,27 @@
 		
 		/** @private */
 		protected var _dispCont:IDisplay;
-		
-		public static const LEFT:int = 0;
-		public static const RIGHT:int = 2;
-		
-		public static const MIDDLE:int = 1;
-		
-		public static const TOP:int = 0;
-		public static const BOTTOM:int = 2;
-		
-		public static const NONE:int = -1;
+		/** @private Casted IDisplayBase interface for container, if available. */
+		protected var _dispBase:IDisplayBase;
 		
 
-		public var align:int = AlignBehaviour.LEFT;
-		public var vAlign:int = AlignBehaviour.TOP;
+		public var _alignRatio:Number = AlignValidation.VALUE_NONE;
+		public function set align(val:String):void {
+			_alignRatio = AlignValidation.toAlignRatio(val);
+			if (_dispCont) _dispCont.invalidateSize();
+		}
+		public var _vAlignRatio:Number = AlignValidation.VALUE_NONE;
+		public function set vAlign(val:String):void {
+			_vAlignRatio = AlignValidation.toVAlignRatio(val);
+			if (_dispCont) _dispCont.invalidateSize();
+		}
+		public static const VALUE_NONE:int = AlignValidation.VALUE_NONE;
+		public static const NONE:String = AlignValidation.NONE;
+		public static const LEFT:String = AlignValidation.LEFT;
+		public static const MIDDLE:String = AlignValidation.MIDDLE;
+		public static const RIGHT:String = AlignValidation.RIGHT;
+		public static const TOP:String = AlignValidation.TOP;
+		public static const BOTTOM:String = AlignValidation.BOTTOM;
 		
 		/** Y offset positioning from current alignment */
 		public var yOffset:Number = 0;
@@ -53,35 +61,12 @@
 		/**
 		 * Constructor. 
 		 * 
-		 * @param	horizontalAlign	  Defaulted to AlignBehaviour.LEFT 
-		 * @param	verticalAlign	   Defaulted to  AlignBehaviour.TOP
+		 * @param	horizontalAlign	  Defaulted to AlignBehaviour.NONE if unspecified
+		 * @param	verticalAlign	   Defaulted to  AlignBehaviour.NONE if unspecified
 		 */
-		public function AlignBehaviour(horizontalAlign:int = AlignBehaviour.LEFT, verticalAlign:int = AlignBehaviour.TOP) {
-			align = horizontalAlign;
-			vAlign = verticalAlign;
-		}
-		
-		public function set horizontalAlign(str:String):void {
-			var aligner:int;
-			switch (str) {
-				case "left": aligner = AlignBehaviour.LEFT;  break;
-				case "middle": aligner = AlignBehaviour.MIDDLE;break;
-				case "right":aligner = AlignBehaviour.RIGHT; break;
-				case "none":aligner = AlignBehaviour.NONE; break;
-				default:return;
-			}
-			align = aligner;
-		}
-		public function set verticalAlign(str:String):void {
-			var aligner:int;
-			switch (str) {
-				case "top": aligner = AlignBehaviour.TOP; break;
-				case "middle": aligner = AlignBehaviour.MIDDLE;break;
-				case "bottom": aligner = AlignBehaviour.BOTTOM; break;
-				case "none":aligner = AlignBehaviour.NONE; break;
-				default:return;
-			}
-			vAlign = aligner;
+		public function AlignBehaviour(horizontalAlign:String = null, verticalAlign:String = null) {
+			if (horizontalAlign) _alignRatio = AlignValidation.toAlignRatio(horizontalAlign);
+			if (verticalAlign) _vAlignRatio = AlignValidation.toVAlignRatio(verticalAlign);
 		}
 		
 		
@@ -95,21 +80,29 @@
 		 */
 		public function activate(targ:*):void {
 			_dispCont = (targ as IDisplay);
+			_dispBase = targ as IDisplayBase;
 			if (_dispCont == null) {
 				trace("AlignBehaviour activate() halt. targ as IDisplay is null!");
 				return;
 			}
-			AncestorListener.addEventListenerOf(_dispCont as IEventDispatcher, CamoDisplayEvent.DRAW, alignDisplayHandler);
-			//_dispCont.addEventListener( CamoDisplayEvent.DRAW, alignDisplayHandler, false, 0, true);
+			AncestorListener.addEventListenerOf(_dispCont as IEventDispatcher, CamoDisplayEvent.DRAW, alignDisplayHandler, -1);
 		}
 		
 	
 		protected function alignDisplayHandler(e:Event):void {
-
-			var disp:DisplayObject = _dispCont.getDisplay();
+			if (!e.bubbles) return;
 			
-			if (align != AlignBehaviour.NONE) disp.x = align > 0 ?  align<2 ?  (_dispCont.width - disp.width)*.5 +xOffset : 	_dispCont.width - disp.width + xOffset :    disp.x + xOffset;
-			if (vAlign != AlignBehaviour.NONE) disp.y = vAlign > 0 ? vAlign < 2 ? ( _dispCont.height - disp.height) * .5 + yOffset: _dispCont.height - disp.height	+ yOffset :    disp.y + yOffset;
+			var disp:DisplayObject = _dispCont.getDisplay();
+		
+			var containerDimension:Number;
+			if (_alignRatio != VALUE_NONE) {
+				containerDimension = _dispBase ? _dispBase.__width :_dispCont.width;
+				disp.x = (containerDimension - disp.width) * _alignRatio +xOffset;
+			}
+			if (_vAlignRatio != VALUE_NONE) {
+				containerDimension  = _dispBase ? _dispBase.__height :_dispCont.height;
+				disp.y = (containerDimension - disp.height) * _vAlignRatio + yOffset;
+			}
 		}
 		
 		public function destroy():void {

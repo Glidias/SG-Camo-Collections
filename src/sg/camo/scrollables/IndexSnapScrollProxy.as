@@ -12,7 +12,7 @@
 	public class IndexSnapScrollProxy extends IndexSnapScrollGuide
 	{
 		
-		public function IndexSnapScrollProxy(targ:IScrollable) 
+		public function IndexSnapScrollProxy(targ:IScrollable=null) 
 		{
 			super(targ);
 		}

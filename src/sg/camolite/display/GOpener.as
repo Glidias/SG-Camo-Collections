@@ -63,6 +63,16 @@
 			$addChild(maskShape);
 		}
 		
+		public function set direction(str:String):void {
+			switch (str) {
+				case "left": openDirection = OPEN_LEFT;  return;
+				case "right": openDirection = OPEN_RIGHT;   return;
+				case "up": openDirection = OPEN_UP;   return;
+				case "down": openDirection = OPEN_DOWN;  return;
+				default:return;
+			}
+		}
+		
 		override protected function draw():void {
 			updateMaskShape();
 			super.draw();

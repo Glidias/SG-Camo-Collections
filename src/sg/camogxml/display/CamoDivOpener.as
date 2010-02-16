@@ -43,10 +43,10 @@
 		}
 		public function set direction(str:String):void {
 			switch (str) {
-				case "left": _openDirection = OPEN_LEFT;  return;
-				case "right": _openDirection = OPEN_RIGHT;   return;
-				case "up": _openDirection = OPEN_UP;   return;
-				case "down": _openDirection = OPEN_DOWN;  return;
+				case "left": openDirection = OPEN_LEFT;  return;
+				case "right": openDirection = OPEN_RIGHT;   return;
+				case "up": openDirection = OPEN_UP;   return;
+				case "down": openDirection = OPEN_DOWN;  return;
 				default:return;
 			}
 		}

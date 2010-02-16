@@ -1,0 +1,1 @@
+This folder contains rough display runs in Flash/AS3 testing SG-Camo's packaged components/displays.

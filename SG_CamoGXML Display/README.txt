@@ -1,1 +1,0 @@
-This folder contains test files field-testing/presenting the Sg-CamoGXML's display-based classes, SG-Camo's DivLayoutBehaviour, and other stuff more pertaining to GXML rendering/layouting.

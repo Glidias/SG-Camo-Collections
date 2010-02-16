@@ -86,7 +86,7 @@
 		/** Whether to flush scrollbar inside display */
 		public var scrollBarInside:Boolean = SCROLLBAR_INSIDE;
 		/**This determines whether to resize the display and accompanying scrollbars as a result of window size changes */
-		public var resizeDisplay:Boolean = RESIZE_DISPLAY;
+		public var listenDraw:Boolean = RESIZE_DISPLAY;
 	
 		/** Scroll bar X offset from current flushed position */
 		public var scrollBarXOffset:Number = 0;
@@ -300,7 +300,7 @@
 		/** @private */
 		protected function drawHandler(e:Event=null):void {
 			
-			if (!resizeDisplay && e != null) return; 
+			if (!listenDraw && e != null) return; 
 			
 			var toAutoFit:Boolean = (autoFit == TRUE);
 			
@@ -377,7 +377,7 @@
 			_disp.dispatchEvent( new OverflowEvent(_overflowValue) );	
 		
 			if (disp.parent != null) {
-				if (!resizeDisplay) drawHandler();
+				if (!listenDraw) drawHandler();
 				return; // assumed scrollbar isn't isolated out of display list 
 			}
 		
@@ -415,7 +415,7 @@
 				if (chkParent != null) chkParent.addChild(disp);
 			}
 			
-			if (!resizeDisplay) drawHandler();
+			if (!listenDraw) drawHandler();
 			
 		
 		}

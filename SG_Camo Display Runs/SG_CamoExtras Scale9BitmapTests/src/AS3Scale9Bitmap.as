@@ -31,14 +31,14 @@ package {
 	import flash.display.StageScaleMode;
 	import flash.geom.Rectangle;
 	import flash.text.TextField;
-	import gs.easing.Cubic;
+	import com.greensock.easing.Cubic;
 	import sg.camo.behaviour.AlignBehaviour;
 	import sg.camo.behaviour.AlignToParentBehaviour;
 	import sg.camo.behaviour.SkinBehaviour;
 
 	
 	import sg.camolite.display.GBaseDisplay;
-	import gs.TweenLite;
+	import com.greensock.TweenLite;
 	
 	import sg.camoextras.display.ScaleBitmap;
 	import sg.camoextras.behaviour.Scale9SimpleStateBehaviour;

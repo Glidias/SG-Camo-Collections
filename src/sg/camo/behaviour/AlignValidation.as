@@ -15,7 +15,6 @@
 		public static const TOP:String = "top";
 		public static const BOTTOM:String = "bottom";
 		public static const VALUE_NONE:Number = -1;
-		public static const VALUE_NONE_STRING:String = -1;
 		
 	
 		/**

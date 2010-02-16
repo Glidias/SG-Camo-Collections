@@ -311,7 +311,7 @@ package sg.camoextras.behaviour
 				state_down = cloneSource ? state_normal.clone() : state_normal;
 			}
 			
-			
+			trace(state_down.rect, state_hover.rect, state_normal.rect);
 			if(state_normal.rect.equals(state_hover.rect) && state_normal.rect.equals(state_down.rect)) {
 				init(targ);
 			} else {

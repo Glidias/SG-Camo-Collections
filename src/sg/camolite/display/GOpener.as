@@ -32,7 +32,7 @@
 		
 		/** @private */ protected var _openDirection:int = OPEN_DOWN;
 		
-		/** @private */ protected var maskShape:Shape = new Shape();
+		/** @private */ protected var maskShape:Shape;
 		/** @private */ protected var _maskPaddingLeft:Number=0; 
 		/** @private */ protected var _maskPaddingRight:Number=0; 
 		/** @private */ protected var _maskPaddingBottom:Number=0; 
@@ -43,7 +43,7 @@
 		/** @private */ protected var _maskBounds:Rectangle = new Rectangle();
 		/** @private */ protected var _iScroll:IOpenScrollProxy;
 		
-		/** @private */ protected var _isOpen:Boolean = true;
+		/** @private */ protected var _isOpen:Boolean = false;
 		/** @private */ protected var _btnOpen:Sprite;
 		
 		/** @private */ protected var _defaultScrollProxy:IOpenScrollProxy;
@@ -53,17 +53,70 @@
 		
 		public function GOpener(customDisp:Sprite=null) 
 		{
+			maskShape = new Shape();
 			super(customDisp);
 			_defaultScrollProxy = new OpenCloseScrollProxy(this);
+			_iScroll = _defaultScrollProxy;
 			
-			$addEventListener(Event.ADDED_TO_STAGE, updateMaskHandler, false , 0, true);
+			maskShape.graphics.beginFill(0, .4);
+			maskShape.graphics.drawRect(0, 0, 32, 32);
+			$addChild(maskShape);
 		}
+		
+		override protected function draw():void {
+			updateMaskShape();
+			super.draw();
+		}
+		
+		protected function updateMaskShape():void {
+			_maskBounds.x = maskShape.x;
+			_maskBounds.y = maskShape.y;
+			_maskBounds.width = display.width;
+			_maskBounds.height = display.height;
+			maskShape.graphics.clear();
+			maskShape.graphics.beginFill(0, .5);
+			maskShape.graphics.drawRect(-_maskPaddingLeft, -_maskPaddingTop, _maskPaddingLeft + _maskPaddingRight + _maskBounds.width, _maskPaddingTop + _maskPaddingBottom + _maskBounds.height );
+		}
+		
+		/**
+		 * Stage instance setter. Aligns maskshape to display sprite.
+		 */
+		override public function set displaySprite(spr:Sprite):void {
+			super.displaySprite = spr;
+			maskShape.x = spr.x;
+			maskShape.y = spr.y;
+			spr.mask = maskShape;
+		}
+		
+		
+		
 		
 		// -- IReflectClass
 		
 		override public function get reflectClass():Class {
 			return GOpener;
 		}	
+		
+		override protected function onAddedToStage(e:Event):void {
+			super.onAddedToStage(e);
+			showDefaultOpenState();
+		}	
+		
+		protected function showDefaultOpenState():void {
+			_iScroll.resetScroll();
+			display.x = maskShape.x;
+			display.y = maskShape.y;
+			var saveScrollProxy:IOpenScrollProxy = _iScroll;
+			if (_isOpen) {
+				_iScroll = _defaultScrollProxy;
+				showOpen();
+			}
+			else {
+				_iScroll = _defaultScrollProxy;
+				showClose();
+			}	
+			_iScroll = saveScrollProxy;
+		}
 		
 		/**
 		 * <b>[Stage instance]</b> to set up opener button.
@@ -79,76 +132,24 @@
 		 */
 		public function set openDirection(val:int):void {
 			_openDirection = val;
+			if (stage) {
+				updateMaskShape();
+				showDefaultOpenState();
+			}
 		}
 		
 		/** @private */
 		protected function openBtnClickHandler(e:MouseEvent):void {
 			open = !open;
 		}
-		/** @private */
-		protected function updateMaskHandler(e:Event):void {
-			if (_inited) return;
-			_defaultScrollProxy.scrollV = 1;
-			_defaultScrollProxy.scrollH = 1;
-			
-		
-				
-			$removeEventListener (Event.ADDED_TO_STAGE, updateMaskHandler);
-			
-			
-			maskShape.graphics.beginFill (0xFF00FF, .5);
-			maskShape.x = display.x - _maskPaddingLeft;
-			maskShape.y = display.y - _maskPaddingTop;
-			maskShape.graphics.drawRect (0, 0 , display.width + _maskPaddingLeft + _maskPaddingRight, display.height + _maskPaddingTop + _maskPaddingBottom);
-			_maskBounds.x = display.x;
-			_maskBounds.y = display.y;
-			_maskBounds.width = display.width;
-			_maskBounds.height = display.height;
-			
-		
-			if (_inited) {
-				_defaultScrollProxy.scrollH = _scrollH;
-				_defaultScrollProxy.scrollV = _scrollV;
-				return;
-			}
-			_inited = true;
-
-			$addChild (maskShape);
-			display.mask = maskShape;
-			//display.addEventListener(CamoDisplayEvent.DRAW, updateMaskHandler, false, 0, true);
-			
-			
-			if (_iScroll) iScroll = _iScroll;
-			else {
-				iScroll = new OpenCloseScrollProxy(this);
-			}
-		}
-		
 		
 		
 		/**
 		 * Sets up new IOpenScrollProxy proxy variation
 		 */
-		public function set iScroll(val:IOpenScrollProxy):void {
-			// force-show fully open state & initialise values
-			_defaultScrollProxy.scrollH = 1;
-			_defaultScrollProxy.scrollV = 1;
-
-
-			val.target = this;  
-			val.openReverseDirection = _openDirection < 0;
-			// force close back
-			_iScroll = _defaultScrollProxy;
-			_iScroll.openReverseDirection =  	val.openReverseDirection;
-			_isOpen = false;
-			showClose();
-
-			
-			_iScroll = val;  // new scroll proxy
-			//doClose();
-			
-			
-			
+		public function set iScroll(scrollProxy:IOpenScrollProxy):void {
+			_iScroll = scrollProxy;
+			_iScroll.target = this;
 		}
 		public function get iScroll():IOpenScrollProxy {
 			return _iScroll;
@@ -167,6 +168,14 @@
 			return _isOpen;
 		}
 		
+		public function set isOpen(boo:Boolean):void {	
+			if (stage) open = boo
+			else _isOpen = boo;
+		}
+		public function get isOpen():Boolean {
+			return _isOpen;
+		}
+		
 		
 	
 		/** @private */
@@ -177,6 +186,8 @@
 		/** @private */
 		protected function showOpen():void {
 			var isLeft:Boolean = _openDirection < 0;
+			
+			_iScroll.openReverseDirection = isLeft;
 			var abs:int = isLeft ? -_openDirection : _openDirection;
 			if ( abs < 2 ) scrollH = isLeft ? -1 : 1;
 			else scrollV = isLeft ? -1 : 1;
@@ -188,12 +199,13 @@
 		}
 		/** @private */
 		protected function showClose():void {
+			var isLeft:Boolean = _openDirection < 0;
+			_iScroll.openReverseDirection = isLeft;
 			var abs:int = _openDirection < 0 ? -_openDirection : _openDirection;
 			if (abs < 2) scrollH = 0;
 			else scrollV = 0;
 		}
-		
-		
+	
 
 	// -- Default IScrollable implementation
 
@@ -233,13 +245,13 @@
 		/// Destructor
 		
 		override public function destroy():void {
-			if (!_inited) $removeEventListener(Event.ADDED_TO_STAGE, updateMaskHandler);
+			
 			if (_btnOpen != null) {
 				_btnOpen.removeEventListener(MouseEvent.CLICK, openBtnClickHandler);
 				_btnOpen = null;
 			}
 			if (iScroll != null) iScroll.destroy();
-			display.removeEventListener(CamoDisplayEvent.DRAW, updateMaskHandler);
+
 			super.destroy();
 		}
 		
@@ -247,24 +259,28 @@
 		
 		public function set maskPaddingLeft(num:Number):void {
 			_maskPaddingLeft  = num;
+			invalidate();
 		}
 		public function get maskPaddingLeft():Number {
 			return _maskPaddingLeft;
 		}
 		public function set maskPaddingRight(num:Number):void {
 			_maskPaddingRight  = num;
+			invalidate();
 		}
 		public function get maskPaddingRight():Number {
 			return _maskPaddingRight;
 		}
 		public function set maskPaddingBottom(num:Number):void {
 			_maskPaddingBottom = num;
+			invalidate();
 		}
 		public function get maskPaddingBottom():Number {
 			return _maskPaddingBottom;
 		}
 		public function set maskPaddingTop(num:Number):void {
 			_maskPaddingTop  = num;
+			invalidate();
 		}
 		public function get maskPaddingTop():Number {
 			return _maskPaddingTop;

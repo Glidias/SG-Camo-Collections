@@ -33,7 +33,7 @@
 	public class GListBox extends GScrollContainer implements IList, ISelectioner, ISelection {
 		
 		/** @private */
-		protected var _listItem:Sprite;
+		protected var _listItem:DisplayObject;
 		/** @private */
 		protected var _listItemClass:Class;
 		
@@ -74,7 +74,6 @@
 			addBehaviour( _selBehaviour );
 			
 			if (_listItem != null) {
-				if ($contains(_listItem)) $removeChild(_listItem); 
 				_itemLength = _isHorizontal ? _listItem.width :  _listItem.height;
 				_listItem = null;
 			}
@@ -86,6 +85,11 @@
 		
 		override public function get reflectClass():Class {
 			return GListBox;
+		}
+		
+		/** @private */
+		protected function get $listItem():DisplayObject {
+			return _listItem || (_listItem = new _listItemClass() as DisplayObject);
 		}
 		
 		
@@ -176,10 +180,10 @@
 		/**
 		 * Usually a <b>[Stage instance]</b> to set sample list item.
 		 */
-		public function set listItem(spr:Sprite):void {
-			_listItem = spr;
-			_listItemClass = Object(spr).constructor as Class;
-		
+		public function set listItem(disp:DisplayObject):void {
+			_listItem = disp;
+			_listItemClass = Object(disp).constructor as Class;
+			disp.visible = false;
 		}
 		
 		/**
@@ -255,6 +259,16 @@
 		}
 		
 		
+		override public function set scrollH (ratio:Number):void {
+			_itemLength = $listItem.width;
+			super.scrollH = ratio;
+		}
+
+	
+		override public function set scrollV (ratio:Number):void {
+			_itemLength = $listItem.height;
+			super.scrollV = ratio;
+		}
 		
 		
 		

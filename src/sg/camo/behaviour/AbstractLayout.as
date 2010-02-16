@@ -15,9 +15,24 @@
 	public class AbstractLayout implements IBehaviour
 	{
 		/**
-		 * Flag to indicate whether to enable re-draw/re-size listener to reupdate layout
+		 * Indicates whether to enable re-draw/re-size listener to reupdate layout
 		 */
-		public var listenDraw:Boolean = false;
+		protected var _listenDraw:Boolean = false;
+		
+		public function set listenDraw(boo:Boolean):void {
+			if (_listenDraw == boo) return;
+			_listenDraw = boo;
+			if (_disp == null) return;
+			if (boo) {
+				AncestorListener.addEventListenerOf(_disp, CamoDisplayEvent.DRAW, reDrawHandler );
+			}
+			else {
+				AncestorListener.removeEventListenerOf(_disp, CamoDisplayEvent.DRAW, reDrawHandler);
+			}
+		}
+		public function get listenDraw():Boolean {
+			return _listenDraw;
+		}
 		
 		/**
 		 * The activated DisplayObjectContainer reference

@@ -115,7 +115,7 @@
 		 * Disposes both behaviour and skin.
 		 */
 		public function destroy():void {
-			AncestorListener.removeEventListenerOf(_disp, CamoDisplayEvent.DRAW, drawHandler);
+			if (_disp) AncestorListener.removeEventListenerOf(_disp, CamoDisplayEvent.DRAW, drawHandler);
 			_disp = null;
 			if (_skin is IDestroyable) (_skin as IDestroyable).destroy();
 			_skin = null;

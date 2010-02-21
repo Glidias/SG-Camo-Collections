@@ -71,6 +71,7 @@
 		}
 		
 		public function destroy():void {
+			if (_targDispatcher == null) return;
 			_targDispatcher.removeEventListener(MouseEvent.CLICK, hrefHandler);
 			_targDispatcher = null;
 		}

@@ -12,7 +12,6 @@
 	import sg.camogxml.api.IDTypedStack;
 	import sg.camogxmlgaia.api.*;
 	import sg.camogxml.api.ISEORenderer;
-	import sg.camogxmlgaia.inject.NodeClassSpawn;
 	
 
 
@@ -27,16 +26,25 @@
 	{	
 		protected var _stacksXML:Dictionary = new Dictionary();
 		protected var _stacks:Dictionary = new Dictionary();
-		protected var _dummySources:Dictionary = new Dictionary();
 		
 		protected var _nodeClassSpawnerManager:INodeClassSpawnerManager;
-		
 		protected var cgg_config:XML;
 
 		public function GXMLIndexPage()
 		{
 			super();
 		}
+		
+		protected function warn(verse:String, value:*):* {
+			GaiaDebug.log(verse, "Using:", String(value));
+			return value;
+		}
+		protected function throwError(message:String):* {
+			throw new Error(message);
+			return null;
+		}
+		
+		
 		
 		override protected function $transitionIn():void {	
 			if (cggTree != this) {
@@ -54,7 +62,6 @@
 		override public function transitionIn():void 
 		{
 			cggTree =  Gaia.api.getSiteTree().content as IGXMLIndexTree;
-			trace(cggTree, Gaia.api.getSiteTree().content);
 			
 			// Run the prescribed operations in order.
 			setupConfig();
@@ -72,9 +79,6 @@
 		{
 			super.transitionOut();
 		}
-		
-		
-		
 
 		
 		/**
@@ -83,17 +87,7 @@
 		 */
 		protected function setupConfig():void {
 			if (cgg_config != null) return;
-			cgg_config = (assets.cgg_config) ? validateXMLAsset("cgg_config") ||  page.node : page.node;
-		}
-		
-		/** @private */
-		protected function validateXMLAsset(assetName:String):XML {
-			var xmlAsset:IXml = assets[assetName] as IXml;
-			if (xmlAsset == null) {
-				GaiaDebug.log("GXMLIndexPage :: validateXMLAsset not found for:" + assetName + " under " + page.branch);
-				return null;
-			}
-			return xmlAsset.xml;
+			cgg_config = assets.cgg_config is IXml ? (assets.cgg_config as IXml).xml :  page.node;
 		}
 		
 		/**
@@ -103,10 +97,9 @@
 
 			var simpleDef:String = cgg_config.hasOwnProperty("NodeClassSpawnerManager") ? cgg_config.NodeClassSpawnerManager[0]["@class"] : null;
 			if (simpleDef) {
-				
-				_nodeClassSpawnerManager = NodeClassSpawn.getImpl(simpleDef, loaderInfo.applicationDomain);
+				_nodeClassSpawnerManager = getImplementation(simpleDef);
 				if (_nodeClassSpawnerManager == null) {
-					trace("GXMLIndexpage Critical Warning! Setup injector failed!");
+					throw new Error("GXMLIndexpage Critical Error! Setup NodeClassSpawner injector failed!");
 					return;
 				}
 				_nodeClassSpawnerManager.bindingMethod = cggTree.resolveBinding;
@@ -136,44 +129,38 @@
 				tryStacks = tryStacks[0].*
 				for each (var xml:XML in tryStacks) {
 				if (xml.@id == undefined) {
-					trace("setupResourceStacks() Warning! No id specified for:" + xml.toXMLString() );
+					GaiaDebug.log("setupResourceStacks() Warning! No id specified for:" + xml.toXMLString() );
 					continue;
 				}
 				var ider:String = xml.@id.toString();
 				_stacksXML[ider] = xml;
-				_stacks[ider] =  _nodeClassSpawnerManager.parseNode(xml, ider, loaderInfo.applicationDomain);
-				}	
-			}
-			
-			tryStacks = cgg_config.dummySources;
-			if (tryStacks.length() > 0) {
-				tryStacks = tryStacks[0].*
-				for each ( xml in tryStacks) {
-				
-					if (xml.@id == undefined) {
-						trace("setupResourceStacks()  dummySources Warning! No id specified for:" + xml.toXMLString() );
-						continue;
-					}
-					ider = xml.@id.toString();
-					if (xml.@type!=undefined) {
-						_dummySources[ider + "$type"] = xml.@type;
-					}
-					if (xml["@class"]!=undefined) {
-						_dummySources[ider] =  _nodeClassSpawnerManager.parseNode(xml, ider, loaderInfo.applicationDomain);
-					}
+				if (xml.@instantiateNow == "true") getStack(ider);
 				}	
 			}
 		}
 		
 
 		// -- IGXMLIndexPage
+		
+		/**
+		 * Retrieves an already-available, or not yet available, resource stack under this page based on id.
+		 * @param	id
+		 * @return
+		 */
 		public function getStack(id:String):IDTypedStack {
-			return _stacks[id];
+			return _stacks[id]  || ( _stacks[id] = parseNode(_stacksXML[id]) );
 		}
 		
+		/**
+		 * Retrieves a fresh new resource stack instance based on id.
+		 * @param	id
+		 * @return
+		 */
 		public function getNewStack(id:String):IDTypedStack {
 			return parseNode(_stacksXML[id], id);
 		}
+		
+
 		
 		
 		/**
@@ -183,17 +170,17 @@
 		 */
 		public function getImplementation(className:String):* {
 			var domain:ApplicationDomain  = loaderInfo.applicationDomain !== ApplicationDomain.currentDomain ? loaderInfo.applicationDomain : null;
-			var classe:Class =  domain!=null  ? domain.hasDefinition(className) ? domain.getDefinition(className) as Class : ApplicationDomain.currentDomain.hasDefinition(className) ? ApplicationDomain.currentDomain.getDefinition(className) as Class : null   : ApplicationDomain.currentDomain.hasDefinition(className) ? ApplicationDomain.currentDomain.getDefinition(className) as Class : null;
-			return classe ? new classe()  : null;
+			var classe:Class =  domain!=null  ? domain.hasDefinition(className) ? domain.getDefinition(className) as Class : ApplicationDomain.currentDomain.hasDefinition(className) ? ApplicationDomain.currentDomain.getDefinition(className) as Class : null   : ApplicationDomain.currentDomain.hasDefinition(className) ? ApplicationDomain.currentDomain.getDefinition(className) as Class : throwError("class retrieval failed:"+className);
+			return new classe();
 		}
 		public function getClass(className:String):Class {
 			var domain:ApplicationDomain  = loaderInfo.applicationDomain !== ApplicationDomain.currentDomain ? loaderInfo.applicationDomain : null;
-			return  domain!=null  ? domain.hasDefinition(className) ? domain.getDefinition(className) as Class : ApplicationDomain.currentDomain.hasDefinition(className) ? ApplicationDomain.currentDomain.getDefinition(className) as Class : null   : ApplicationDomain.currentDomain.hasDefinition(className) ? ApplicationDomain.currentDomain.getDefinition(className) as Class : null;
+			return  domain!=null  ? domain.hasDefinition(className) ? domain.getDefinition(className) as Class : ApplicationDomain.currentDomain.hasDefinition(className) ? ApplicationDomain.currentDomain.getDefinition(className) as Class : null   : ApplicationDomain.currentDomain.hasDefinition(className) ? ApplicationDomain.currentDomain.getDefinition(className) as Class : throwError("class retrieval failed:"+className);
 		}
 		
 
 		/**
-		 * Helper method to  spawn instance via nodeCassSPawner manager.
+		 * Helper method to  spawn instance via nodeClassSpawnerManager.
 		 */
 		protected function parseNode(xml:XML, subject:*=null):* {
 			return _nodeClassSpawnerManager.parseNode(xml, subject, loaderInfo.applicationDomain);

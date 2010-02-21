@@ -3,11 +3,13 @@
 	import camo.core.display.CamoDisplay;
 	import flash.display.DisplayObject;
 	import flash.display.Sprite;
+	import flash.events.Event;
 	import flash.geom.Rectangle;
 	import sg.camo.events.OverflowEvent;
 	import sg.camo.interfaces.IDiv;
 	import sg.camo.interfaces.IListItem;
 	import sg.camo.interfaces.IReflectClass;
+	import sg.camo.notifications.GDisplayNotifications;
 	/**
 	 * A standard CamoDisplay container that is layoutable under DivLayoutBehaviour.
 	 * 
@@ -30,11 +32,17 @@
 		
 		public function CamoDiv() 
 		{
-		
+			_zIndex = 0;
 		}
 		
 		public function get reflectClass():Class {
 			return CamoDiv;
+		}
+		
+		override public function set zIndex(val:Number):void {
+			if (val == _zIndex) return;
+			super.zIndex  = int(val);
+			dispatchEvent( new Event(GDisplayNotifications.Z_INDEX_CHANGE, true) );
 		}
 		
 		/**
@@ -80,6 +88,15 @@
 			_overflowVisible = str === "visible";
 			super.overflow = str;
 		}
+		
+		/*
+		override public function get width():Number {
+			return _overflowVisible ? _width : super.width;
+		}
+		override public function get height():Number {
+			return _overflowVisible ? _height : super.height;
+		}
+		*/
 		
 		/** @private */
 		protected function $calculatePadding():void {

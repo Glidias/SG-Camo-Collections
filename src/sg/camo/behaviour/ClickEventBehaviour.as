@@ -75,6 +75,7 @@
 		}
 		
 		public function destroy():void {
+			if (_targDispatcher == null) return;
 			AncestorListener.removeEventListenerOf(_targDispatcher, MouseEvent.CLICK, clickHandler);
 			_targDispatcher = null;
 		}

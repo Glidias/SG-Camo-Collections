@@ -4,7 +4,10 @@
 	import camo.core.events.CamoChildEvent;
 	import camo.core.events.CamoDisplayEvent;
 	import flash.display.DisplayObject;
+	import flash.display.DisplayObjectContainer;
 	import flash.errors.IllegalOperationError;
+	import flash.events.Event;
+	import sg.camo.ancestor.AncestorListener;
 	import sg.camo.interfaces.IAncestorSprite;
 	
 	/**
@@ -15,14 +18,50 @@
 	 */
 	public class BaseDisplayListLayout extends AbstractLayout
 	{
+		/**
+		 * Enforce a fixed depth index for adding children.
+		 * Negative values indicate the default topmost depth.
+		 */
+		protected var _addChildDepth:int = -1;
+		
+		public function set addChildDepth(val:Number):void {
+			if (_disp ) {
+				if ( _addChildDepth >= 0) AncestorListener.removeEventListenerOf(_disp, CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler);
+				if (val >= 0) AncestorListener.addEventListenerOf(_disp, CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler, 1, true);
+			}
+			_addChildDepth = int(val);
+		}
+		public function get addChildDepth():Number {
+			return _addChildDepth;
+		}
+		
+		
+		
+		protected static function validateDepth(cont:DisplayObjectContainer, val:int):int {
+			return val > cont.numChildren-1 ? cont.numChildren-1 : val;
+		}
 		
 		public function BaseDisplayListLayout(self:BaseDisplayListLayout=null) 
 		{
 			super(self);
 		}
 		
+		override public function activate(targ:*):void {
+			super.activate(targ);
+			if (_disp && _addChildDepth >=0 ) AncestorListener.addEventListenerOf(_disp, CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler, 1, true);
+		}
+		
+		override public function destroy():void {
+			if (_disp) AncestorListener.removeEventListenerOf(_disp, CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler);
+			super.destroy();
+		}
+		
+		protected function addChildInterruptDepthHandler(e:CamoChildEvent):void {
+			_disp.setChildIndex(e.child, validateDepth(_disp, _addChildDepth) );
+		}
+		
 		override protected function addChildHandler(e:CamoChildEvent):void {
-			
+	
 			var child:DisplayObject = e.child;
 			var curIndex:int = _disp.getChildIndex(child);
 			var numChildren:int = _disp.numChildren;

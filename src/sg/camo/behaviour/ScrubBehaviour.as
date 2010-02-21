@@ -142,6 +142,7 @@
 		}
 		
 		public function destroy():void {
+			if (_targDispatcher == null || _target == null) return;
 			AncestorListener.removeEventListenerOf(_targDispatcher, _listenScrubForward, handleScrubForward);
 			AncestorListener.removeEventListenerOf(_targDispatcher, _listenScrubBackward, handleScrubBackward);
 			_target.removeEventListener(Event.ENTER_FRAME, enterFrameChecker);

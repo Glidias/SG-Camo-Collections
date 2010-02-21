@@ -1,6 +1,8 @@
 ﻿package sg.camogxml.display 
 {
+	import camo.core.events.CamoChildEvent;
 	import flash.display.DisplayObject;
+	import flash.events.Event;
 	import flash.utils.Dictionary;
 	import sg.camo.interfaces.IDestroyable;
 	import sg.camo.interfaces.IDisplayRender;
@@ -9,6 +11,7 @@
 	import sg.camo.interfaces.IList;
 	import sg.camo.interfaces.IListItem;
 	import sg.camo.interfaces.IText;
+	import sg.camo.notifications.GDisplayNotifications;
 	/**
 	 * CamoDiv that implements IList interface and supports various list item/divider rendering methods.
 	 * @author Glenn Ko
@@ -105,6 +108,7 @@
 				if (dividerItem) addDivider(dividerItem);
 			}
 			addChildToDisplayList(listItem, label, id);
+			dispatchEvent( new CamoChildEvent(GDisplayNotifications.ADD_LIST_ITEM, listItem) );
 			_length++;
 			return listItem;
 		}
@@ -112,11 +116,14 @@
 
 		public function removeListItem (id:String):DisplayObject {
 			var listItem:DisplayObject = _listHash[id];
+		
 			if (listItem) {
 				delete _listHash[id];
+				dispatchEvent( new CamoChildEvent(GDisplayNotifications.REMOVE_LIST_ITEM, listItem) );
 				removeChildFromDisplayList(listItem, id);
 				_length--;
 			}
+			
 			return listItem;
 		}
 		

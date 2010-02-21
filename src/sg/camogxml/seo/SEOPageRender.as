@@ -15,6 +15,7 @@
 	import sg.camo.ancestor.AncestorListener;
 	import sg.camo.interfaces.ILabler;
 	import sg.camo.interfaces.IList;
+	import sg.camo.interfaces.IRenderFactory;
 	import sg.camo.interfaces.IRenderPool;
 	import sg.camo.interfaces.IText;
 	import sg.camo.interfaces.ITextField;
@@ -47,11 +48,10 @@
 		// Trackers
 		/** @private */	protected var _anchors:Dictionary = new Dictionary();
 		
-		public static const DEFAULT_LI_ANCHOR_MODE:Boolean = true;
-		public var defaultLiAnchorMode:Boolean;
+		public var defaultLiAnchorMode:Boolean = true
 		
 		// Class Flags
-		/** @private */  protected var _liAnchorMode:Boolean = DEFAULT_LI_ANCHOR_MODE;
+		/** @private */  protected var _liAnchorMode:Boolean = true;
 		/** @private */ protected var _liRenderMode:Boolean = false;
 		/** @private */ protected var _liOrdered:Boolean = false;
 		
@@ -63,10 +63,9 @@
 		public function SEOPageRender(renderSrc:IDisplayRenderSource, xml:XML=null) 
 		{
 			_renderSrc = renderSrc;
-			defaultLiAnchorMode = DEFAULT_LI_ANCHOR_MODE;
 			if (xml != null) this.xml = xml;
 		}
-		public static function constructorParams(renderSrc:IDisplayRenderSource, xml:XML=null):void { };
+		
 		
 		public function renderSeo(xmler:XML):void {
 			//default xml namespace = new Namespace("http://www.w3.org/1999/xhtml");
@@ -685,7 +684,7 @@
 		 */
 		protected function getRenderById(id:String, node:XML=null):IDisplayRender {
 			var retRender:IDisplayRender = _renderSrc.getRenderById(id);
-			return retRender is IRenderPool ? (retRender as IRenderPool).object : retRender;
+			return retRender is IRenderPool ? (retRender as IRenderPool).object : retRender is IRenderFactory ? (retRender as IRenderFactory).createRender() :  retRender;
 		}
 		
 		/**

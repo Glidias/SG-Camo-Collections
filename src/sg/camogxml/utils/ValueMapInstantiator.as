@@ -2,15 +2,17 @@
 {
 	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
-	import camo.core.utils.TypeHelperUtil;
-	import camo.core.utils.PropertyMapCache;
 	import flash.utils.getQualifiedClassName;
+	import sg.camo.interfaces.IPropertyMapCache;
+	import sg.camo.interfaces.ITypeHelper;
 	import sg.camogxml.api.IConstructorInfo;
+	
+	
 	
 	/**
 	 * Handy utility to instantiate classes and inject dependencies with ValueMap.
-	 * Also uses TypeHelperUtil to attempt to convert any string-based values from a 
-	 * ValueMap to the required type per application.
+	 * Also uses a ITypeHelper/IPropertyMapCache implementation to attempt to convert 
+	 * any string-based values from a ValueMap to the required type per application.
 	 * 
 	 * @see camo.core.utils.TypeHelperUtil
 	 * 
@@ -18,6 +20,8 @@
 	 */
 	public class ValueMapInstantiator
 	{
+		
+		
 		/**
 		 * 
 		 * @param	classe
@@ -25,6 +29,7 @@
 		 * @param	bindingMethod
 		 */
 		public static function instantiate(classe:Class, valueMap:ValueMap, bindingMethod:Function = null):* {
+			var typeHelper:ITypeHelper = GXMLGlobals.typeHelper;
 			var retTarg:*;
 			var constructor:Array = valueMap.constructor;
 			var setter:Object = valueMap.setter;
@@ -46,21 +51,21 @@
 					var type:String = typedArray ?  typedArray[i] : constructor["*"+i];
 					var value:* = typedArray ? constructor[type] ? constructor[constructor[type]] : getValAtIndex(constructor,i) : getValAtIndex(constructor,i);
 					if (bindingMethod != null && value is String) value = bindingMethod(value);
-					value = type != null? value is String ? TypeHelperUtil.getType( value, type.toLowerCase() ) : value :   value;
+					value = type != null? value is String ? typeHelper.getType( value, type.toLowerCase() ) : value :   value;
 					newArr[i] = value;
 				}
 				retTarg = ConstructorUtils.instantiateClassConstructor(classe, newArr);
 			}
 			else retTarg = new classe();
 			
-
-			var propertyMap:Object = PropertyMapCache.getPropertyMapCache(className, classe);
+			var propMapCache:IPropertyMapCache = GXMLGlobals.propertyMapCache;
+			var propertyMap:Object = propMapCache.getPropertyMapCache(className) || propMapCache.getPropertyMap(classe);
 			for (var prop:String in setter) {
 				type = propertyMap[prop];
 				if (type) {
 					value = setter[prop];
 					if (bindingMethod != null && value is String) value = bindingMethod(value);
-					value =  value is String ? TypeHelperUtil.getType( value, type ) : value;
+					value =  value is String ? typeHelper.getType( value, type ) : value;
 					retTarg[prop] = value;
 				}
 			}

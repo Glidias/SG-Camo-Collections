@@ -29,14 +29,11 @@
 	import sg.camogxmlgaia.api.*;
 	import sg.camogxml.api.ISEORenderer;
 	
-	import sg.camogxmlgaia.inject.NodeClassSpawn;
-	
 	import sg.camogxmlgaia.utils.CamoAssetFilter;
 	
 	import sg.camogxmlgaia.utils.DependencyResolverUtil;
 	
 	import flash.utils.getDefinitionByName;
-	import camo.core.utils.TypeHelperUtil;
 		
 	
 	/**
@@ -59,43 +56,33 @@
 		private static var GXML_RENDERER_PRESET:String = "sg.camogxml.render.GXMLRender";
 		private static var GXMLPAGE_RENDERER_PRESET:String = "sg.camogxml.render.GXMLPageRender";
 		
-		
 		// -- Render class name subjects and mapped values
 		protected static const SUBJECT_GXML:String = "gxml";
 		protected static const SUBJECT_GXMLPAGE:String = "gxmlPage"
 		protected static const SUBJECT_SEOPAGE:String = "seoRender";
 		protected static const SUBJECT_TRANSITION:String = "transition";
 		
+		// Node class spawner manager
+		private static const DEFAULT_NODE_CLASS_SPAWNER:String = "sg.camogxmlgaia.inject.NodeClassSpawnerManager";
+		
+		// Storage 
+		/** @private */ protected var _transitionManagers:Dictionary = new Dictionary();
+		/** @private */	protected var _pageInstances:Dictionary = new Dictionary();
+		
+		// References
+		/** @private */ protected var _renderClassNames:Dictionary = new Dictionary();
 		
 		// Private flags
-		/** @private */ protected var _renderClassNames:Object = { };
-		
-		/** @private */ protected var _transitionManagers:Dictionary = new Dictionary();
-		
 		/** @private */ protected var _curPageRenderPath:String = "index";
 		/** @private */ protected var _assetPathQuery:String;
 		
 		public function GXMLIndexTree() 
 		{
-			TypeHelperUtil.registerFunction( "class", resolveClassHandler);
-			TypeHelperUtil.registerFunction( "sg.camo.gxml::valuemap", resolveValueMapHandler);
-			
 			super();
 		}
 		
 		/**
-		 * This method is registered to TypeHelperUtil to resolve strings to Class definitions
-		 * @see camo.core.utils.TypeHelperUtil
-		 * @param	str
-		 * @return
-		 */
-		public function resolveClassHandler(str:String):Class {
-			return getClass(str);
-		}
-		
-		/**
-		 * This method is registered to TypeHelperUtil to resolve strings to ValueMaps
-		 * @see camo.core.utils.TypeHelperUtil
+		 * This method can be registered to some ITypeHelperUtil to resolve strings to ValueMaps
 		 * @param	str
 		 * @return
 		 */
@@ -141,7 +128,7 @@
 						//var chkContentProp:* = page.content.hasOwnProperty(prop) ? page.content[prop] : null;
 						var chkContentProp:* =page.content[branchVarPair[1]];
 							if ( (chkContentProp is Function) && substr!=null) return chkContentProp(substr);
-					//	trace(chkContentProp);
+		
 						return chkContentProp;
 					}
 				}
@@ -165,14 +152,71 @@
 			return Gaia.api.resolveBinding(str);
 		}
 		
+		public function getBranchContent(str:String=""):* {
+			str = str || page.branch;
+			return Gaia.api.getPage(str).content;
+		}
 		
+		
+		
+	
 		public function getNewTransitionManager(page:IPageAsset):ITransitionManager {
 			_curPageRenderPath = page.branch;
 			var node:XML = page.node;
 			_transitionManagers[page] = node.hasOwnProperty("transition") ? parseRenderNode(node.transition[0]) : parseRenderNode( TRANSITION_RENDERER_PRESET);
 			return _transitionManagers[page];
 		}
+		
+		
 
+		/**
+		 * Retrieves an already-available, or not yet available, page instance and inject dependencies
+		 * accordingly into it.
+		 * @param	payload	 A class / class name to instantiate
+		 * @param	branch	A specified page branch to determine the lifecycle of the instance, 
+		 * 					otherwise if null or blank, uses current index page branch. You can use unique named instances under
+		 * 					a page branch by specifying a single '*' character and the name after it.
+		 * 					(eg. index/home/*someNamedInstance)
+		 * @param	node	Any XML node to use for instantiating through a NodeClassSpawner.
+		 * @param   subject	A subject key you might want to pass to NodeClassSpawner
+		 * @return
+		 */
+		public function getPageInstance(payload:*, branch:String=null, node:XML = null, subject:*=null):* {	
+			return checkPageInstance(payload, branch, node, subject, createPageInstance);
+		}
+
+		
+		protected function checkPageInstance(payload:*, branch:String, node:XML, subject:*, createMethod:Function, extraArgs:Array=null):* {
+			branch = branch || page.branch;
+			extraArgs = extraArgs || [];
+			
+			if (branch.indexOf("{") > -1) {
+				branch = resolveBinding(branch);
+			}
+			
+			var chkIndex:int = branch.indexOf("*");
+			var pageBranch:String = chkIndex > -1 ? branch.substr(0, chkIndex) : branch;
+			
+			var trailingSlash:Boolean = pageBranch.charAt(pageBranch.length - 1) === "/";
+			if (trailingSlash) {
+				pageBranch = pageBranch.substr(0, pageBranch.length - 1);
+			}
+			if (!pageExists(pageBranch))  throw new Error("GXMLIndexTree checkPageInstance() failed! Page branch doesn't exist:"+pageBranch)
+
+			var dictToRegister:Dictionary = _pageInstances[pageBranch] || (_pageInstances[pageBranch] = new Dictionary());
+			var chkId:String = payload is String ? payload : getQualifiedClassName(payload);  // to convert last dot to :: for first case
+			chkId = chkIndex > -1 ? chkId + "*" + branch.substr(chkIndex + 1) : chkId;
+			if (dictToRegister[chkId] != null) return dictToRegister[chkId];
+			return createMethod.apply(null, [payload,branch,node,subject,dictToRegister,chkId].concat(extraArgs) );
+		}
+
+		protected function createPageInstance(payload:*, branch:String, node:XML, subject:*, dictToRegister:Dictionary, keyToRegister:String):* {
+			var classe:Class = payload is String ? getClass(payload) : payload is Class ? payload : null;
+			if (classe == null) throw new Error("GXMLIndexPage:: createPageInstance failed for:"+payload, branch);
+			var instance:* = node != null ? _nodeClassSpawnerManager.spawnClassWithNode(classe, node, subject) : new classe();
+			dictToRegister[keyToRegister] = instance;
+			return instance;
+		}
 		
 		 
 		public function pageExists(path:String):Boolean {
@@ -250,17 +294,14 @@
 			return null;
 		}
 		
-		private function warn(verse:String, value:*):* {
-			trace(verse, "Using:", value);
-			return value;
-		}
+
 		
 		
 		// Start Bindable resolvings boiler-plate...
 
 		public function getRenderedFromStack(id:String):DisplayObject {
 			// Assumption made for convention. THere is a default stack name of "render" which is also a IDisplayRenderSource.
-			var renderStack:IDisplayRenderSource = _stacks["render"] as IDisplayRenderSource;
+			var renderStack:IDisplayRenderSource = getStack("render") as IDisplayRenderSource;
 		
 			if (!renderStack) return null;
 		
@@ -285,18 +326,18 @@
 		}
 		
 		public function determineSource(str:String, attribVal:String = null):* {
-			var typedStack:IDTypedStack = _stacks[str];
+			var typedStack:IDTypedStack = getStack(str);
 			if (attribVal == null) {
 				if (typedStack == null) {
-					trace("GXMLIndexTree.determineSource() failed! No typed stack found for:" + str +". Using dummy:"+_dummySources[str]);
-					return _dummySources[str];
+					throw new Error("GXMLIndexTree.determineSource() failed! No typed stack found for:" + str +".");	
 				}
 				return typedStack;
 			}
 
 		
 			var src:* = getSource(attribVal);
-			var className:String =  typedStack != null ? getQualifiedClassName( typedStack.stackType ) : _dummySources[str+"$type"];
+			if (typedStack == null) throw new Error("GXMLIndexTree::determineSource(). Can't find typed stack");
+			var className:String =  getQualifiedClassName( typedStack.stackType );
 			
 			if (src is Array) {
 				var newStack:IDTypedStack = getNewStack(str);
@@ -307,7 +348,7 @@
 				for (var i:int = 0; i < len; i++) {
 					var unitItem:* = DependencyResolverUtil.resolveDependency( arr[i], className, "gxml")
 					if (unitItem != null) newStack.addItemById(unitItem, page.branch);
-					else trace("determineSource() stack unit failed for array:", i , arr[i]);
+					else GaiaDebug.log("GXMLIndexTree::determineSource() stack unit failed for array:", i , arr[i]);
 				}
 				return newStack;
 			}
@@ -315,7 +356,7 @@
 		}
 		
 		public function cloneStack(branchId:String, stackId:String):IDTypedStack {
-			var referStack:IDTypedStack = _stacks[stackId];
+			var referStack:IDTypedStack = getStack(stackId);
 			return referStack ? referStack.cloneStack(branchId) : null; 
 		}
 		
@@ -353,7 +394,7 @@
 			
 			// Enforce dependencies, if not found..and show warnings/error if still not found..
 			if (_nodeClassSpawnerManager == null) {
-				_nodeClassSpawnerManager = NodeClassSpawn.getImpl(NodeClassSpawn.CLASSNAME_MANAGER, loaderInfo.applicationDomain);
+				_nodeClassSpawnerManager = getImplementation(DEFAULT_NODE_CLASS_SPAWNER);
 				_nodeClassSpawnerManager.bindingMethod = resolveBinding;
 				if (_nodeClassSpawnerManager == null) GaiaDebug.error("GXMLIndexTree :: No Injector found!");
 			}
@@ -396,7 +437,6 @@
 				default: return;
 			}
 			var listNodes:XMLList = xml.*;
-			trace(listNodes, listNodes.length() );
 			for each (var node:XML in listNodes) {
 				var value:String = String(node["@class"]);
 				if ( !Boolean(value) ) {
@@ -407,7 +447,7 @@
 			}
 			
 			if (_renderClassNames['default']) {
-				trace( "Setting default for subject:" + _renderClassNames['default'] ); 
+				trace( "Setting default class for subject:" + _renderClassNames['default'], nodeName ); 
 				if (nodeName === SUBJECT_GXML) GXML_RENDERER_PRESET = _renderClassNames['default']
 				else if (nodeName === SUBJECT_GXMLPAGE) GXMLPAGE_RENDERER_PRESET =  _renderClassNames['default']
 				else if (nodeName === SUBJECT_SEOPAGE) SEO_RENDERER_PRESET = node
@@ -433,12 +473,13 @@
 		
 		private function addSourceAssetToStack(asset:ISourceAsset, node:XML, curIndex:IGXMLIndexPage, page:IPageAsset):void {
 			var sourceType:String = asset.sourceType;
-			var typedStack:IDTypedStack = _stacks[sourceType];
+			var typedStack:IDTypedStack = getStack(sourceType);
 		
 			if (typedStack == null) return;
 			var settings:XML = _stacksXML[sourceType];
 			if ( !(settings.@alwaysStack != "false" || node.@stacking == "true") ) return;
 			var stackType:Class = typedStack.stackType;
+			if (asset is INodeClassAsset) (asset as INodeClassAsset).spawnClass(_nodeClassSpawnerManager);
 			//if (asset.source is stackType) {
 			
 				typedStack.addItemById(asset.source, page.branch);
@@ -449,7 +490,7 @@
 		public function removeSources(page:IPageAsset, ...args):void {
 			var iDes:IDestroyable;
 			for (var i:* in _stacks) {
-				(_stacks[i] as IDTypedStack).removeItemsById(page.branch);
+				_stacks[i].removeItemsById(page.branch);
 			}
 			
 			if (_transitionManagers[page]) {
@@ -457,6 +498,14 @@
 				if (iDes) iDes.destroy();
 				delete _transitionManagers[page];
 			}
+			
+			var hash:Dictionary = _pageInstances[page.branch];
+			if (!hash) return;
+			for (i in hash) {
+				iDes = hash[i] as IDestroyable;
+				if (iDes) iDes.destroy();
+			}
+			delete _pageInstances[page.branch];
 		}
 		
 		
@@ -475,7 +524,7 @@
 				
 				if (dispRenderAsset is INodeClassAsset) {
 					
-					if (node['@class'] == undefined) node['@class'] = node['@renderType']!= undefined  ? _renderClassNames[node['@renderType']] || GXML_RENDERER_PRESET : GXML_RENDERER_PRESET;
+					if (node['@class'] == undefined) node['@class'] = node['@renderType']!= undefined  ? _renderClassNames[node['@renderType'].toString()] || GXML_RENDERER_PRESET : GXML_RENDERER_PRESET;
 					(dispRenderAsset as INodeClassAsset).spawnClass(nodeClassSpawner);
 				}
 				// gxml pages are rendered later (but declared first in the asset list)
@@ -483,11 +532,11 @@
 				
 			
 				if (node.@stacking != undefined && node.@stacking != "false" ) {
-					var renderStack:IDTypedStack = _stacks["render"];
+					var renderStack:IDTypedStack = getStack("render");
 					
-					
-					if (renderStack)
+					if (renderStack) {
 						renderStack.addItemById( (dispRenderAsset as IDisplayRenderAsset).displayRender, page.branch);
+					}
 				}
 			}
 		}
@@ -510,17 +559,18 @@
 						gxmlPageRender = (gxmlAsset as INodeClassAsset).spawnClass(nodeClassSpawner);
 					}
 					gxmlAsset.renderGXML();
-					if (gxmlPageRender && _stacks["render"] && xml.@stacking=="true") {
+					var renderStack:IDTypedStack = getStack("render");
+					if (gxmlPageRender &&  renderStack && xml.@stacking=="true" && (gxmlPageRender is IDisplayRenderSource) ) {
 						// Always stack page renders regardless
 						// assumption made that 'gxmlPage' is IDisplayRenderSource, 
 						// and IDTypedStack handles IDisplayRenderSource. No type checking done....
-						(_stacks["render"] as IDTypedStack).addItemById(gxmlPageRender ,_curPageRenderPath);
+						renderStack.addItemById(gxmlPageRender ,_curPageRenderPath);
 					}
 				}
 				if ( xml.@depth != undefined ) {
 					var disp:DisplayObject= DependencyResolverUtil.resolveDependency( assets[xml.@id.toString()], "flash.display::DisplayObject", "depth");
 					if (disp) addChildAtDepth(disp, xml.@depth.toString() );
-					else trace("renderPageLayers() depth. No displayObject dependency found for:" + assets[xml.@id.toString()] );
+					else GaiaDebug.log("renderPageLayers() depth. No displayObject dependency found for:" + assets[xml.@id.toString()] );
 				}
 			}
 		}
@@ -545,7 +595,7 @@
 					}
 				break;
 			}
-			trace("addChildAtDepth() failed. No container found for:" + depth);
+			GaiaDebug.log("addChildAtDepth() failed. No container found for:" + depth);
 		}
 		
 		public function renderPageContent(page:IPageAsset, ...args):void {
@@ -556,8 +606,6 @@
 			if (checkSeo) {
 				var targetNode:XML = page.node.hasOwnProperty("seo") ? page.node.seo[0] : SEO_RENDERER_PRESET;
 				var seoRenderer:ISEORenderer =  parseRenderNode( targetNode, "seo" ) as ISEORenderer;
-				trace(checkSeo);
-				trace(page.copy.something)
 				
 				// have to clean up xmlns root header, since Gaia doesn't do it.
 				seoRenderer.renderSeo( XML(String(checkSeo).replace(/\s+xmlns(:[^=]+)?="[^"]*"/g, ""))  );
@@ -567,7 +615,7 @@
 		
 		public function parseRenderNode(node:XML, subject:*= null):* {
 			if (node["@class"] == undefined && node.@renderType != undefined) {
-				node["@class"] = _renderClassNames[node.@renderType];
+				node["@class"] = _renderClassNames[node.@renderType.toString()];
 			}
 			return parseNode(node, subject );
 		}

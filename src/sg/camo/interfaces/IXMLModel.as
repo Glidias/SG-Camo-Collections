@@ -8,7 +8,6 @@
 	public interface IXMLModel 
 	{
 		function set modelXML(xml:XML):void;
-		//function get modelXML():XML;
 	}
 	
 }

@@ -153,6 +153,7 @@
 			_disp.removeEventListener(Event.ADDED_TO_STAGE, onAddedToStageInit);
 			_dispCont = _disp.parent is IDisplay ? _disp.parent  : _disp.parent.parent is IDisplay ? _disp.parent.parent : _disp.parent;
 			_dispBase = _dispCont as IDisplayBase;
+			trace(_dispCont.name);
 			initAlignToParent();
 		}
 		
@@ -176,13 +177,16 @@
 		 * @param	e
 		 */
 		protected function alignDisplayHandler(e:Event = null):void {
+			
 			if (e != null && !e.bubbles) return;
 			
 			var containerWidth:Number = _dispBase ? _dispBase.__width :_dispCont.width;
 			var containerHeight:Number = _dispBase ? _dispBase.__height :_dispCont.height;
 			if ( !isNaN(_left) || !isNaN(_right) ) _disp.x = validateXOffset(containerWidth);
 			if ( !isNaN(_top) || !isNaN(_bottom) ) _disp.y = validateYOffset(containerHeight);
-			if (_alignRatio != VALUE_NONE ) _disp.x = (containerWidth - _disp.width) * _alignRatio +xOffset;
+			if (_alignRatio != VALUE_NONE ) {
+				_disp.x = (containerWidth - _disp.width) * _alignRatio +xOffset;
+			}
 			if (_vAlignRatio != VALUE_NONE ) _disp.y = (containerHeight - _disp.height) * _vAlignRatio + yOffset;
 		}
 		
@@ -199,7 +203,7 @@
 		}
 		
 		public function destroy():void {
-			AncestorListener.removeEventListenerOf(_dispCont as IEventDispatcher, CamoDisplayEvent.DRAW, alignDisplayHandler);
+			if (_dispCont) AncestorListener.removeEventListenerOf(_dispCont as IEventDispatcher, CamoDisplayEvent.DRAW, alignDisplayHandler);
 			_dispCont = null;
 			_disp = null;
 		}

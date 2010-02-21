@@ -80,7 +80,7 @@
 		}
 		
 		/**
-		 * This method can be registered to TypeHelperUtil to allow creating of value maps from
+		 * This method can be registered to some TypeHelper to allow creating of value maps from
 		 * a string xml representation of a value map.
 		 * @param	str   Converts string to an XML for parsing into a ValueMap 
 		 */

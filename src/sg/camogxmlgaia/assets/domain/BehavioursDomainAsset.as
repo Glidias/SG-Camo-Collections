@@ -7,6 +7,7 @@
 	import sg.camo.interfaces.IBehaviouralBase;
 	import sg.camo.interfaces.IDomainModel;
 	import sg.camo.interfaces.IDefinitionGetter;
+	import sg.camo.interfaces.IXMLModel;
 	import sg.camogxmlgaia.api.ISourceAsset;
 	
 	/**
@@ -21,15 +22,18 @@
 	 * 
 	 * @author Glenn Ko
 	 */
-	public class BehavioursDomainAsset extends SpriteAsset implements ISourceAsset
+	public class BehavioursDomainAsset extends XMLSpriteAsset implements ISourceAsset
 	{
-		/** Default IBehaviouralBase class _implementation to use under loader's application domain or (usually) current application domain */
+		/** Default IBehaviouralBase class _implementation to use under loader's application domain or
+		 * (usually) current application domain, if no IDefinitionGetter implementation is found for loaded content. */
 		public static var DEFAULT_IMPLEMENTATION:String = "sg.camogxml.render.GXMLBehaviours";
 		
 		/** @private */
 		protected var _implementation:String;
 		/** @private */
 		protected var _behaviourBase:IBehaviouralBase;
+		/** @private */
+		protected var _defGetter:IDefinitionGetter;
 		
 		
 		
@@ -43,7 +47,7 @@
 			return "behaviour";
 		}
 		public function get source():* {
-			return _behaviourBase;
+			return _behaviourBase || _defGetter;
 		}
 		
 		override public function parseNode(page:IPageAsset):void {
@@ -51,31 +55,32 @@
 			if ( _node.@implementation !=undefined )  _implementation = _node.@implementation;
 		}
 		
-		public function get behaviourBase():IBehaviouralBase {
-			return _behaviourBase;
-		}
-		
-		override protected function onComplete(event:Event):void
-		{
-			super.onComplete(event);
-			var domain:ApplicationDomain = loader.contentLoaderInfo.applicationDomain;
 
+		
+		override protected function doComplete():void
+		{
+			if (loader.content is IDefinitionGetter) {
+				_defGetter = loader.content as IDefinitionGetter;
+				return;
+			}
+			
+			
+			var domain:ApplicationDomain = loader.contentLoaderInfo.applicationDomain;
+			
 			var behBase:IBehaviouralBase = domain.hasDefinition(_implementation) ? new (domain.getDefinition(_implementation) as Class)() as IBehaviouralBase :  ApplicationDomain.currentDomain.hasDefinition(_implementation) ? new (ApplicationDomain.currentDomain.getDefinition(_implementation) as Class)() as IBehaviouralBase : null;
 			if (behBase == null) {
 				trace("BehavioursDomainAsset onComplete() halt! No IBehaviouralBase instance found for:"+_implementation);
 				return;
 			}
 			_behaviourBase = behBase;
-			
+			_defGetter = _behaviourBase as IDefinitionGetter;
 			
 			var domainModel:IDomainModel = behBase as IDomainModel;
 			
 			if (domainModel != null) {
 				domainModel.appDomain = domain;
-				domainModel.modelXML = node;
+				domainModel.modelXML = _xml || node;
 			}
-			
-
 		}
 		
 		override public function toString():String

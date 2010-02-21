@@ -87,7 +87,7 @@
 		}
 		
 		public function destroy():void {
-			AncestorListener.removeEventListenerOf( _target as IEventDispatcher, CamoDisplayEvent.DRAW, draw);
+			if (_target) AncestorListener.removeEventListenerOf( _target as IEventDispatcher, CamoDisplayEvent.DRAW, draw);
 
 			display = null;
 			_target = null;

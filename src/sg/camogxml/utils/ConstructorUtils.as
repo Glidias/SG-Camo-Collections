@@ -31,8 +31,22 @@
 				case 9: return new classe(params[0],params[1],params[2],params[3],params[4],params[5],params[6],params[7],params[8]);
 				default: break;
 			}
-			trace("ConstructorUtils.instantiateClassConstructor failed() Doesn't support more than 9 parameters in constructor!");
+			throw new Error("ConstructorUtils.instantiateClassConstructor failed() Doesn't support more than 9 parameters in constructor!");
 			return null;
+		}
+		
+		/**
+		 * Creates a throw-away instance of a class to facilitate constructor info retrieval
+		 * @param	classe
+		 * @param	paramLen	The length of null values to supply to the constructor parameters
+		 */
+		public static function instantiateNullConstructor(classe:Class, paramLen:int):void {
+			var arr:Array = new Array(paramLen);
+			var i:int = arr.length;
+			while (--i > -1) {
+				arr[i] = null;
+			}
+			instantiateClassConstructor(classe, arr);
 		}
 		
 		

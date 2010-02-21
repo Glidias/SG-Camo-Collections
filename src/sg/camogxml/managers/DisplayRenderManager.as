@@ -43,7 +43,6 @@
 		public function addDisplayRenderSource(dispRenderSrc:IDisplayRenderSource, id:String):void {
 			var payload:Array  = dispRenderSrc.getDisplayRenders();
 			for (var i:String in payload) {
-				trace("adding item:"+payload[i].renderId);
 				addDisplayRender( payload[i], id);
 			}
 		}

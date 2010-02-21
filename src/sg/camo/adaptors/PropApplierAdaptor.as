@@ -5,7 +5,8 @@
 	import flash.utils.Proxy;
 	
 	/**
-	 * Property application system conventions for SG-Camo over any object.
+	 * Property application system conventions for SG-Camo over any object, particularly
+	 * display objects, behaviours or any type of class (even dynamic Proxy classes).
 	 * @author Glenn Ko
 	 */
 	
@@ -15,7 +16,6 @@
 		
 		public function PropApplierAdaptor(propMapCache:IPropertyMapCache, typeHelper:ITypeHelper) 
 		{
-			if (propMapCache == null) return;
 			super(this, propMapCache, typeHelper);
 		}
 		

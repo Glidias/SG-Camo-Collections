@@ -8,6 +8,7 @@
 	import sg.camo.interfaces.IDisplayRenderSource;
 	import sg.camo.interfaces.IDisplayRender;
 	import sg.camogxml.api.IFunctionDef;
+	import sg.camogxml.utils.FunctionDefCreator;
 	import sg.camogxmlgaia.api.INodeClassSpawner;
 	
 	import sg.camo.interfaces.IList;
@@ -15,7 +16,6 @@
 	import sg.camo.interfaces.IDestroyable;
 	import sg.camogxml.utils.FunctionDefInvoker;
 	import sg.camogxml.utils.ConstructorInvoker;
-	import camo.core.utils.TypeHelperUtil;
 
 	
 	/**
@@ -54,8 +54,10 @@
 			_defGetter  = iDefGetter;
 			_nodeSpawner = nodeClassSpawner;
 		}
-		public static function constructorParams(renderSrc:IDisplayRenderSource, xml:XML=null, iDefGetter:IDefinitionGetter=null, nodeClassSpawner:INodeClassSpawner=null):void { };
 		
+		public function addAttributeBindingFrom(target:*, attrib:String, funcName:String):void {
+			addAttributeBinding( attrib, FunctionDefCreator.create(target, funcName, false, "|") );
+		}
 		public function addAttributeBinding(attrib:String, funcDef:IFunctionDef):void {
 			if (funcDef == null) return;
 			_attribBindings[attrib] = funcDef;
@@ -100,7 +102,7 @@
 			
 					var funcDef:IFunctionDef = hash[i];
 					var arr:Array = node['@' + attrib].toString().split(funcDef.delimiter);
-					trace(arr);
+					
 					for (var u:String in arr) {
 						var val:* = myBinding(arr[u]) || arr[u];
 						arr[u] = val;
@@ -110,8 +112,23 @@
 			}
 		}
 		
+		private static function splitTypeFromSource(value : String) : Object 
+		{
+			var obj : Object = new Object( );
+			// Pattern to strip out ',", and ) from the string;
+			var pattern : RegExp = RegExp( /[\'\)\"]/g );// this fixes a color highlight issue in FDT --> '
+			// Fine type and source
+			var split : Array = value.split( "(" );
+			//
+			obj.type = split[0];
+			obj.source = split[1].replace( pattern, "" );
+			
+			return obj;
+		}
+		
 		/** @private */
 		protected function myBinding(str:String):* {
+
 			if ( str.charAt(0) != "{") return null;
 			str = str.slice(1, str.length -1);
 			switch (str) {
@@ -120,7 +137,7 @@
 				default:  if (str.charAt(0) === "[") {
 					
 							str = str.slice(1, str.length -1);
-							var typeSource:Object = str.indexOf("(") > -1 ? TypeHelperUtil.splitTypeFromSource(str) : null;
+							var typeSource:Object = str.indexOf("(") > -1 ? splitTypeFromSource(str) : null;
 							var defName:String = typeSource!= null ? typeSource.type : str;
 							var chkDef:Object = _defGetter.hasDefinition(defName) ? _defGetter.getDefinition(defName) : null;
 							

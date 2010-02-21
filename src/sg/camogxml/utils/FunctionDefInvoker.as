@@ -1,7 +1,7 @@
 ﻿package sg.camogxml.utils 
 {
+	import sg.camo.interfaces.ITypeHelper;
 	import sg.camogxml.api.IFunctionDef;
-	import camo.core.utils.TypeHelperUtil;
 	/**
 	 * Handy utility to execute factory methods / function definitions. 
 	 * 
@@ -11,6 +11,8 @@
 	 */
 	public class FunctionDefInvoker
 	{
+		
+
 		
 		/**
 		 * Validates, executes and type-checks a function definition given an array of 
@@ -34,14 +36,15 @@
 			}
 			var isValid:Boolean = def.overload ? params.length >= requiredLen : params.length >= requiredLen && params.length <= defParams.length;
 			if (!isValid) {
-				trace("FunctionDefInvoker.invoke() Invalid no. of parameters supplied:[", params+"]", ", ["+defParams+"]", params.length+"/"+requiredLen);
+				throw new Error("FunctionDefInvoker.invoke() Invalid no. of parameters supplied:[", params+"]" + ", ["+defParams+"]"+ ", "+ params.length+"/"+requiredLen);
 				return null;
 			}
+			var typeHelper:ITypeHelper = GXMLGlobals.typeHelper;
 			var len:int = params.length;
 			var arr:Array = new Array(len);
 			for (var i:int = 0; i < len; i++) {
 				var value:* = params[i];
-				arr[i] = value is String ? TypeHelperUtil.getType(value, defParams[i].toLowerCase()) : value;
+				arr[i] = value is String ? typeHelper.getType(value, defParams[i].toLowerCase()) : value;
 			}
 			var ret:* = methodToCall.apply(null, arr);
 			return ret;

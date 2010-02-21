@@ -4,7 +4,8 @@
 	import flash.utils.Dictionary;
 	import flash.utils.describeType;
 	import flash.utils.getQualifiedClassName;
-	import camo.core.utils.TypeHelperUtil;
+	import sg.camo.interfaces.IPropertyMapCache;
+	import sg.camo.interfaces.ITypeHelper;
 	import sg.camogxml.api.IConstructorInfo;
 	import sg.camogxml.api.IFunctionDef;
 	import sg.camogxml.utils.ConstructorInfoCache;
@@ -12,16 +13,25 @@
 	import sg.camogxml.utils.FunctionDefInvoker;
 	import sg.camogxmlgaia.api.INodeClassSpawnerManager;
 	import sg.camogxml.utils.ConstructorUtils;
-	import camo.core.utils.PropertyMapCache;
+	import sg.camogxml.utils.GXMLGlobals;
+	
 	
 	/**
-	 * Class instantiator and dependency injector utility supporting both constructor and setter 
-	 * dependency injection with the help of Camo Core's utilities.
+	 * Class instantiator and dependency injector utility supporting constructor, setter 
+	 * and method dependency injection with the help of Camo Core's utilities. 
+	 * <br/><br/>
+	 * This class was made specifically to support varying/adjustable settings over 
+	 * newly instantiated instances through user-supplied XML node attribute settings.
+	 * By supplying a class to instantiate with an accompanying XML node, varied settings can
+	 * be applied to the instance based on given node attribute values.
 	 * 
 	 * @author Glenn Ko
 	 */
 	public class NodeClassSpawnerManager implements INodeClassSpawnerManager
 	{
+		public var typeHelper:ITypeHelper = GXMLGlobals.typeHelper;
+		public var propMapCache:IPropertyMapCache = GXMLGlobals.propertyMapCache;
+		
 		/** @private */
 		protected var bind:Function = noBinding;  
 		
@@ -32,10 +42,7 @@
 		/** Denotes method injection */
 		public static const METHOD_TYPE:String = "method";		
 		
-		
-		private static var valueMappings:Dictionary = new Dictionary();		
-		private static var constructorParamsMap:Dictionary = new Dictionary();	
-
+		private static var valueMappings:Dictionary = new Dictionary();	
 		
 		private function noBinding(str:String):* {
 			return str;
@@ -79,7 +86,7 @@
 				node = subjectList[i];
 				typeParamPrefix = node.@typeParamPrefix != undefined ? node.@typeParamPrefix : typeParamPrefix;
 				if (node.@id == undefined) {
-					trace("Warning! No subject id specified for: doMappingChunk:" + xml);
+					trace("Warning! No subject id specified for: doMappingChunk:" + xml.toXMLString());
 					i++;
 					continue;
 				}
@@ -97,12 +104,12 @@
 				if (nodeName === "clone") {
 					var cloneId:String = node.@id != undefined ? node.@id : null;
 					if (cloneId == null) {
-						trace("Error. Clone failed for:"+node);
+						trace("Error. Clone failed for:"+node.toXMLString());
 						continue;
 					}
 					var toCloneValMap:ValueMap =  valueMappings[cloneId]; 
 					if (toCloneValMap == null) {
-						trace("Error. No value mapping found. Clone failed for:"+node);
+						trace("Error. No value mapping found. Clone failed for:"+node.toXMLString());
 						continue;
 					}
 					valueMappings[subject] = toCloneValMap.clone();
@@ -114,7 +121,7 @@
 					
 					var type:String = node.@type != undefined ? node.@type : SETTER_TYPE;
 					var typeParam:String =node.@typeParam!=undefined  ? typeParamPrefix + node.@typeParam : type === SETTER_TYPE ? node.@attrib : null;
-					var value:* = node.@type == "method" ? node.toString() :   node.@method != undefined ?  node.@asString == undefined ? bind( node.@method.toString()  ) : node.@method.toString() :   Boolean(node) ? node.@asString == undefined ? bind(node.toString()) : node.toString()  : null;
+										var value:* = node.@type == "method" ? node.toString() :   node.@method != undefined ?   bind( node.@method.toString()  )  :   Boolean(node) ? node.@bind == "true" ? bind(node.toString()) : node.toString()  : null;
 					var compulsory:Boolean = node.@compulsory == "true";
 					var methodParams:Array = ( node.@method == undefined || !(value is Function) ) ? null : createMethodParams(node);
 					mapSubjectAttributeToValue(subject, node.@attrib, typeParam, type, value, compulsory, methodParams);
@@ -133,8 +140,8 @@
 			
 			for (i = 0; i < len; i++) {
 				var pNode:XML = list[i];
-				var type:String =  pNode.@type != undefined ? pNode.@type.toString().toLowerCase() : TypeHelperUtil.STRING;
-				var val:*  = type === TypeHelperUtil.STRING ? pNode.@asString != undefined ?  TypeHelperUtil.getType( pNode.toString(), type): bind(TypeHelperUtil.getType( pNode.toString(), type))  : TypeHelperUtil.getType( pNode.toString(), type);
+				var type:String =  pNode.@type != undefined ? pNode.@type.toString().toLowerCase() : "string";
+				var val:*  = type === "string" ? pNode.@bind == "true" ?  bind(typeHelper.getType( pNode.toString(), type)) : typeHelper.getType( pNode.toString(), type)  : typeHelper.getType( pNode.toString(), type);
 				methodParams.push(  val );
 			}
 			return methodParams.length > 0 ? methodParams : null;
@@ -153,7 +160,7 @@
 		 * 						If you have default values that needs to be applied, set this to true.
 		 * @param   methodArr	If value is a method, you can supply pre-configured arguments to be used for the method.
 		 * 
-		 * @see camo.core.utils.TypeHelperUtil
+		 * 
 		 */
 		public function mapSubjectAttributeToValue(subject:*, attribute:String, typeParam:String, type:String=SETTER_TYPE, value:*=null, compulsory:Boolean=false, methodArr:Array=null):void {
 			var subjectKey:String =  getSubjectKey(subject);
@@ -190,6 +197,32 @@
 			return subject is String ? subject : subject is XML ? String( (subject as XML).name() ) : getQualifiedClassName(subject);
 		}
 		
+		public function injectInto(classInstance:*, node:XML=null, subject:*= null, additionalBinding:Function = null):void {
+			//var propMapCache:IPropertyMapCache = ;
+			var className:String = getQualifiedClassName(classInstance);
+			var subjectKey:String = subject ? getSubjectKey(subject) : node ? String(node.name()) : className;
+			var obj:ValueMap = getValueMapOfs(subjectKey, className);
+			if (obj == null) {
+				 // don't fail gracefully for this, assume ValueMap required
+				throw new Error("NodeClassSpawnerManager injectInto() failed. No value map found for:"+classInstance)  
+			}
+			performInjections(node, GXMLGlobals.propertyMapCache, obj, className, classInstance, additionalBinding);
+		}
+		
+		protected function getValueMapOfs(subjectKey:*, className:String):ValueMap {
+			var obj:ValueMap = valueMappings[subjectKey];
+			var obj2:ValueMap = valueMappings[className];  // TODO: add in obj2 tier consideration
+			 		
+			if (obj == null) { 
+				if (obj2 == null) return null; //throw new Error("NodeClassSpawnerManager :: getValueMapOfs() No value map found for:"+subjectKey + " or "+className);  
+				else {
+					obj = obj2;
+					obj2 = null;
+				}
+			}
+			return obj;
+		}
+		
 		/**
 		 * 	Attempts to instantiate the class with the correct
 		 * mapped constructor parameters and all other setter values when considering
@@ -205,25 +238,10 @@
 			var className:String = getQualifiedClassName(classDef);
 			var subjectKey:String = subject ? getSubjectKey(subject) : String(node.name());
 			
+			var obj:ValueMap = getValueMapOfs(subjectKey, className);
+			if (obj == null) return new classDef();  // no Value map found, attempting direct instantiate.
 			
-			var obj:ValueMap = valueMappings[subjectKey];
-			var obj2:ValueMap = valueMappings[className];  // TODO: add in obj2 tier consideration
-			
-			 		
-			if (obj == null) { 
-				if (obj2 == null) return new classDef()  //For now, don't care if got constructor params...throw error user's fault if no mapping specified	
-				else {
-					obj = obj2;
-					obj2 = null;
-				}
-			}
-			if (obj == null) {
-				trace("NodeClassSpawnerManager failed! No mapping found for:"+node.toXMLString());
-				return null;
-			}
-			
-			var classInstance:* = null;
-			
+			var classInstance:*;
 			
 			// Typed-Specific Constructor Injection
 			var constructInfo:IConstructorInfo = ConstructorInfoCache.getConstructorInfoCache(className, classDef);
@@ -239,22 +257,19 @@
 				
 				for (var i:int = 0; i < len; i++ ) {
 	
-					var type:String = typedArray ? typedArray[i] : null;
-					var attribValPair:AttributeValuePair =  typedArray ? constructHash[typedArray[i]] : i < constructHash.length ?  constructHash[i] : null; 
-					
+					var type:String = typedArray[i];
+					var attribValPair:AttributeValuePair =  constructHash[type]; 
 					
 					 
 					if (attribValPair == null) {
 						if ( i >= requiredLen ) continue;  
 						else {
-							trace("NodeClassSpawnerManager parseNode() failed. No constructor parameter mapping for index:"+i+ " under "+className);
-							return null;
+							throw new Error("NodeClassSpawnerManager parseNode() failed. No constructor parameter mapping for index:"+i+ " under "+className);
 						}
 					}
 					if (type == null) type = attribValPair.typeParam;
 					
-					// trace(attribValPair );
-					 
+				
 					var isCompulsory:Boolean = attribValPair.compulsory || i < requiredLen;
 					
 					var gotDefineAttrib:Boolean = node['@' + attribValPair.attribute] != undefined;
@@ -262,7 +277,8 @@
 					
 					if (!gotDefineAttrib && !isCompulsory) continue; 
 				
-					if (type != null) type = type.toLowerCase();
+					type = type.toLowerCase();
+					
 					var value:* = resolveValue(attribValPair.value, attribValue, type, attribValPair.methodParams, additionalBinding );
 					if (value == null) {
 						trace("NodeClassSpawnerManager :: warning! Resolved constructor value is null", attribValPair , type);
@@ -273,25 +289,31 @@
 			}
 			else classInstance = new classDef();
 			
+			performInjections(node, propMapCache, obj, className, classInstance, additionalBinding);
+			
+			return classInstance;
+		}
+		
+		
+		
+		protected function performInjections(node:XML, propMapCache:IPropertyMapCache, obj:ValueMap, className:String, classInstance:*, additionalBinding:Function):void {
 			// Setter injection
-			var propertyMap:Object = PropertyMapCache.getPropertyMapCache(className, classDef);
+			var propertyMap:Object = propMapCache.getPropertyMapCache(className) || propMapCache.getPropertyMap(classInstance);
 			applyNodeProperty(obj.setterValues, propertyMap, node, classInstance, additionalBinding);
 			
 			// Method injection
-			typedArray = obj.methodValues;
-			len = typedArray.length;
-			for (i = 0; i < len; i++ ) {
-				attribValPair = typedArray[i];
+			var typedArray:Array = obj.methodValues;
+			var len:int = typedArray.length;
+			for (var i:int = 0; i < len; i++ ) {
+				var attribValPair:AttributeValuePair = typedArray[i];
 				var funcDef:IFunctionDef = attribValPair.value;
-				applyConstructorParams = node["@"+attribValPair.attribute]!=undefined ?  node["@"+attribValPair.attribute].toString().split(funcDef.delimiter) : attribValPair.methodParams.concat();  // todo: consider inline attribute
+				var applyConstructorParams:Array = node["@"+attribValPair.attribute]!=undefined ?  node["@"+attribValPair.attribute].toString().split(funcDef.delimiter) : attribValPair.methodParams.concat();  // todo: consider inline attribute
 				
 				for (var u:String in applyConstructorParams) {
 					applyConstructorParams[u] = validateType(applyConstructorParams[u],  additionalBinding);
 				}
 				FunctionDefInvoker.invoke(funcDef, applyConstructorParams, classInstance[attribValPair.typeParam]); 
 			}
-			
-			return classInstance;
 		}
 		
 
@@ -309,16 +331,14 @@
 			
 			var classAttrib:String = node["@class"];
 			if (!Boolean(classAttrib)) {
-				trace("NodeClassInstantiator parseNode failed! No class attribute found:"+node);
-				return;
+				throw new Error("NodeClassInstantiator parseNode failed! No class attribute found:"+node.toXMLString());
 			}
 			var curDomain:ApplicationDomain = ApplicationDomain.currentDomain;
 			
 			var classDef:Class = domain ? domain.hasDefinition(classAttrib) ? domain.getDefinition(classAttrib) as Class : curDomain.hasDefinition(classAttrib) ? curDomain.getDefinition(classAttrib) as Class : null   : curDomain.hasDefinition(classAttrib) ? curDomain.getDefinition(classAttrib) as Class : null;
 
 			if (classDef == null) {
-				trace("NodeClassInstantiator parseNode failed! No class definition found:"+node);
-				return;
+				throw new Error("NodeClassInstantiator parseNode failed! No class definition found:"+node.toXMLString() );
 			}
 			
 			return spawnClassWithNode(classDef, node, subject, additionalBinding);
@@ -340,7 +360,7 @@
 						attribValue = attrib.toXMLString();
 						type = propertyMap[attribName]
 						if (type) {
-							value = additionalBinding != null ? validateType(additionalBinding(attribValue), null) || validateType( TypeHelperUtil.getType(attribValue, type), additionalBinding )  : validateType( TypeHelperUtil.getType( attribValue, type), additionalBinding );
+							value = additionalBinding != null ? validateType(additionalBinding(attribValue), null) || validateType( typeHelper.getType(attribValue, type), additionalBinding )  : validateType( typeHelper.getType( attribValue, type), additionalBinding );
 							classInstance[attribName] = value;
 						}
 					}
@@ -367,7 +387,7 @@
 		}
 		
 		private function resolveValue(value:*, attributeValue:String, type:String, methodParams:Array = null, addBinding:Function=null ):* {
-			return value is Function && type!="function" ? methodParams!=null ?  value.apply(null, methodParams.concat(attributeValue||[]) ) : value(attributeValue) : value is String ? addBinding!=null ? validateType(addBinding(attributeValue || value), null) ||validateType( TypeHelperUtil.getType( (attributeValue || value), type), addBinding )  : validateType( TypeHelperUtil.getType( (attributeValue || value), type), addBinding )  : value;
+			return value is Function && type!="function" ? methodParams!=null ?  value.apply(null, methodParams.concat(attributeValue||[]) ) : value(attributeValue) : value is String ? addBinding!=null ? validateType(addBinding(attributeValue || value), null) ||validateType( typeHelper.getType( (attributeValue || value), type), addBinding )  : validateType( typeHelper.getType( (attributeValue || value), type), addBinding )  : value;
 		}
 		
 		private function bind2(value:*,  additionalBinding:Function):* {

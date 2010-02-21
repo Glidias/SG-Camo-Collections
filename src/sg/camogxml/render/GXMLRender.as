@@ -4,9 +4,9 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.display.DisplayObject;
 	import flash.text.TextField;
-	import flash.text.TextFormat;
-	import flash.utils.describeType;
+	import flash.utils.Dictionary;
 	import sg.camo.interfaces.IDefinitionGetter;
+	import sg.camo.interfaces.IPropertyApplier;
 	
 	import flash.xml.XMLDocument;
 	import flash.xml.XMLNode;
@@ -17,17 +17,12 @@
 	
 	import sg.camo.interfaces.IBehaviouralBase;
 	import sg.camo.interfaces.IBehaviour;
-	
-	import sg.camo.interfaces.IBehaviourSourceSettable;
-	import sg.camo.interfaces.ISelectorSourceSettable;
 	import sg.camo.interfaces.ISelectorSource;
 	
-	import sg.camo.interfaces.IPropertyApplyable;
 	import sg.camo.interfaces.IDestroyable;
 	import sg.camo.interfaces.IRecursableDestroyable;
 	import sg.camo.interfaces.IDisplayRender;
-	
-	import sg.camogxml.utils.GPropertyApplyerUtil;
+
 	import sg.camogxml.api.IGXMLRender;
 
 
@@ -36,22 +31,12 @@
 	* 
 	* @author Glenn Ko
 	*/
+	
+	[Inject(name='gxml',name='gxml',name='gxml',name='',name='textStyle')]
 	public class GXMLRender extends XMLDocument implements IRecursableDestroyable, IDisplayRender, IGXMLRender
 	{
-		
-		// Required
-
-		public var stylesheet:ISelectorSource;
-		public var behaviours:IBehaviouralBase;
-		public var definitionGetter:IDefinitionGetter;
-		
-		public var defaultClass:Class;
-		public var defaultTextClass:Class;
-		public var defaultTextFieldProps:Object;
-		protected var _inlineStyleSheetClass:Class;
-		
 		protected var _rootNode:XMLNode;
-		
+		protected var _behCache:Dictionary = new Dictionary();
 	
 		protected var _rendered:DisplayObject;
 		protected var _renderId:String = "GXMLRender";
@@ -60,41 +45,74 @@
 		protected var bindAttribute:Function = dummyBinding;
 		protected var bindText:Function = dummyBinding;
 		
+		public var dispPropApplier:IPropertyApplier;
+		public var behPropApplier:IPropertyApplier;
+		public var textPropApplier:IPropertyApplier;
+		
+		
+		// Required (constructor supplied)
+		public var stylesheet:ISelectorSource;
+		public var behaviours:IBehaviouralBase;
+		public var definitionGetter:IDefinitionGetter;
+				
+		// Required (for inline stylesheet support)
+		public var inlineStyleSheetClass:Class;
+		
+		// Optional Public Settings
+		public static var DEFAULT_COMPRESS_CSS:Boolean = true;
+		public var compressInlineCSS:Boolean;
+		
+		// rarely injected (constructor initialised by convention.)
+		public var defaultClass:Class;
+		public var defaultTextClass:Class;
+		public var defaultTextFieldProps:Object;
+
 		// Flags
 		protected var _curProps:Object;
+		protected var _curPropsArr:Array;
 		protected var _parsed:Boolean = false;
-		public static var FORCE_ADD_BEHAVIOURS:Boolean = true;
-		public static var DEFAULT_COMPRESS_CSS:Boolean = true;
 		protected var _xmlCache:XML;
-		public var compressInlineCSS:Boolean;
-		public var forceAddBehaviours:Boolean;
 		
 		
+		// NodeClassSpawner must create throwaway.
+		// CGGconfig edit from constructor to setter for inline stylesheet
 		
 		
-		public function GXMLRender(definitionGetter:IDefinitionGetter, behaviours:IBehaviouralBase, stylesheet:ISelectorSource, inlineStyleSheetClass:Class=null) 
+		public function GXMLRender(definitionGetter:IDefinitionGetter, behaviours:IBehaviouralBase, stylesheet:ISelectorSource, propApplier:IPropertyApplier, textPropApplier:IPropertyApplier=null) 
 		{
 			super();
 	
-			forceAddBehaviours = FORCE_ADD_BEHAVIOURS;
+			if (definitionGetter == null) return;
+			
 			compressInlineCSS = DEFAULT_COMPRESS_CSS;
-	
 			
 			this.stylesheet = stylesheet;
 			this.behaviours = behaviours;
 			this.definitionGetter = definitionGetter;
 			
-			defaultClass = definitionGetter.getDefinition("DefaultNode") as Class;
-			defaultTextClass = definitionGetter.getDefinition("DefaultTextNode") as Class;
-			defaultTextFieldProps = stylesheet.getSelector("TextField") || { };
-			
-			
-			_inlineStyleSheetClass = inlineStyleSheetClass;
+			defaultClass = defaultClass || definitionGetter.getDefinition("DefaultNode") as Class;
+			defaultTextClass = defaultTextClass || definitionGetter.getDefinition("DefaultTextNode") as Class;
+			defaultTextFieldProps = defaultTextFieldProps || stylesheet.getSelector("TextField") || { };
+		
+			this.dispPropApplier = propApplier;
+			this.behPropApplier = propApplier;
+			this.textPropApplier = textPropApplier || propApplier;
 			
 			ignoreWhite = true;
 		}
 		
-		public static function constructorParams(definitionGetter:IDefinitionGetter, behaviours:IBehaviouralBase, stylesheet:ISelectorSource, inlineStyleSheetClass:Class=null):void { };
+		[PostConstruct(name = 'gxml.display', name = 'gxml.behaviour', name = 'gxml.text')]
+		public function setCustomPropAppliers(dispPropApplier:IPropertyApplier=null,behPropApplier:IPropertyApplier=null,textPropApplier:IPropertyApplier=null):void {
+			if (dispPropApplier) this.dispPropApplier = dispPropApplier;
+			if (behPropApplier)  this.behPropApplier  = behPropApplier;
+			if (textPropApplier) this.textPropApplier = textPropApplier;
+		}
+		
+		// -- Bindings
+		
+		protected function myBinding(str:String):* {
+			
+		}
 	
 		/**
 		 * Sets string binding method to process inline attribute values in nodes. Inline attribute values are passed to the 
@@ -112,17 +130,16 @@
 			bindText = func;
 		}
 		
-		
 		private final function dummyBinding(val:String):String {
 			return val;
 		}
 
-
+		
 		protected function getBehaviour(behName:String):IBehaviour {
 			var retBeh:IBehaviour = behaviours.getBehaviour(behName);
 			if (_curProps != null) {	
 				// apply curProps to behaviour
-				GPropertyApplyerUtil.applyProperties(retBeh, _curProps);
+				behPropApplier.applyProperties(retBeh, _curProps);
 			}
 			return retBeh;
 		}
@@ -202,11 +219,11 @@
 		
 		/** @private*/
 		protected function considerInlineStylesheet(xml:XML):Boolean {
-			if (_inlineStyleSheetClass != null && xml.stylesheet.length()> 0) {
+			if (inlineStyleSheetClass != null && xml.stylesheet.length()> 0) {
 				
 				var inlineCSS:String = xml.body.length() > 0 ? xml.stylesheet[0] : null;
 				if (inlineCSS) {
-					var propSheet:IPropertySheet = new _inlineStyleSheetClass() as IPropertySheet;
+					var propSheet:IPropertySheet = new inlineStyleSheetClass() as IPropertySheet;
 					if (propSheet != null) {
 						propSheet.parseCSS(inlineCSS, compressInlineCSS);
 						if (stylesheet == null) {
@@ -227,7 +244,7 @@
 						return true;
 					}
 					else {
-						trace("parseXML inlineStylesheet. Cast to IPropertySheet failed for instantiated class:" + _inlineStyleSheetClass);
+						trace("parseXML inlineStylesheet. Cast to IPropertySheet failed for instantiated class:" + inlineStyleSheetClass);
 						return false;
 					}
 				}
@@ -259,35 +276,43 @@
 				
 			} 
 			
+			
 			super.parseXML(source);
 			_parsed = true;
 			
-			var node:XMLNode = body!=null ? firstChild : firstChild.firstChild;
+			var node:XMLNode = firstChild;
+			
 			if (node == null) {
 				trace("GXMLRender: parseXML() halted. No first child node from root!");
 				
 				return;
 			}
-			_rootNode = node;
+			
+			_rootNode = node.firstChild;
 			
 			_renderId = node.attributes.renderId || node.nodeName;
-	
+			
+			node = _rootNode;
+			
+			//delete node.attributes['class'];
+			
 			_rendered = renderNode(node);
+			
+			
+	
 			if (_rendered == null) {
 				trace("GXMLRender: parseXML() halted. Root node must be a displayObject");
 				
 				return;
 			}
 			
-			if (_rendered is DisplayObjectContainer) createChild(node.firstChild, _rendered as DisplayObjectContainer)  // recurse and create children
-			else warnNoDisplayContainer();
+			if (_rendered is DisplayObjectContainer && !isTerminalNode(node) ) createChild(node.firstChild, _rendered as DisplayObjectContainer)  // recurse and create children
+			
 		
 			_curProps = null;
 		}
 		
-		protected function warnNoDisplayContainer():void {
-			trace("GXMLRender: parseXML() Warning. Root node isn't displayObjectContainer:"	);
-		}
+
 		
 		protected function createChild(node:XMLNode, parent:DisplayObjectContainer):DisplayObject {
 			
@@ -311,7 +336,7 @@
 				var behBase:IBehaviouralBase = node.parentNode.attributes.rendered as IBehaviouralBase;
 				if (behBase == null) return;
 				behBase.addBehaviour( untyped as IBehaviour );
-				GPropertyApplyerUtil.applyProperties(untyped, props);
+				dispPropApplier.applyProperties(untyped, props);
 			}
 		}
 
@@ -319,14 +344,14 @@
 			var props:Object = getSelectorFromNode (node);
 			
 			_curProps = props;
-		
 			var isTxtNode:Boolean = isTextNode (node);
 			var renderedItem:* = getRenderedItem(node, isTxtNode);
 			if (renderedItem == null) {
 				trace("Warning:: renderedItem of " + node.nodeName + " is null");
 			}
 			var disp:DisplayObject = renderedItem as DisplayObject;
-			if (node.nodeName === "sds") trace("SDS"+renderedItem);
+			
+		//	if (node.nodeName === "div") trace("SDS"+renderedItem);
 			
 			if (disp == null) {
 				
@@ -334,7 +359,6 @@
 				return null;
 			}
 			
-			if (disp is ISelectorSourceSettable) (disp as ISelectorSourceSettable).selectorSource = stylesheet;
 			
 			isTxtNode = isTextPropInjectable(renderedItem);
 			if (isTxtNode) injectTextFieldProps(disp, props, node)
@@ -356,7 +380,7 @@
 		
 		protected function getRenderedItem(node:XMLNode, isTxtNode:Boolean):* {
 			// TODO: parse different types of definitions
-			return definitionGetter.hasDefinition(node.nodeName) ? new ( (definitionGetter.getDefinition as Class)(node.nodeName) as Class)() : isTxtNode ? new defaultTextClass() : new defaultClass();
+			return definitionGetter.hasDefinition(node.nodeName) ? new  (definitionGetter.getDefinition(node.nodeName) as Class)() : isTxtNode ? new defaultTextClass() : new defaultClass();
 		}
 		
 
@@ -364,12 +388,8 @@
 		
 		protected function injectDisplayBehaviours(disp:DisplayObject, props:Object, node:XMLNode):Array {
 			var behArray:Array = null;
-			
-		//	if (disp is IBehaviourSourceSettable) 	// set behaviour source and ignore other operations, assuming class will set/activate behaviours on their own ....
-			//	(disp as IBehaviourSourceSettable).behaviourSource = this;
-			
-			//else
-			 if (props.behaviours) {	// still assert adding of behaviours
+
+			 if (props.behaviours) {	
 				behArray =  props.behaviours.split(" ");
 				var beh:IBehaviour;
 				var len:int = behArray.length;
@@ -385,15 +405,17 @@
 						i++;
 					}
 				}
-				else if (forceAddBehaviours) {		// force-add behaviours over DisplayObject and activate them automatically
-					var destroyables:Array = new Array(len);
+				else  {		// force-add behaviours over DisplayObject and activate them automatically
+					
 					while (i < len) {	
 						beh = getBehaviour( behArray[i] );
 						beh.activate(disp);
-						destroyables[i] = beh;
+						
+						_behCache[beh] = true;
 						i++;
 					}
-					node.attributes.destroyBehaviours = destroyables; // mark node to destroy behaviours
+					
+					
 				}
 			}
 			
@@ -405,32 +427,20 @@
 		protected function findTextField(obj:Object):TextField {
 			return obj is ITextField ? (obj as ITextField).textField :  obj as TextField;
 		}
-		protected function injectTextFieldProps(disp:DisplayObject, props:Object, node:XMLNode):Object {
-			var cachedProps:Object = null;
+		protected function injectTextFieldProps(disp:DisplayObject, props:Object, node:XMLNode):void {
 			var txtField:TextField = findTextField(disp);
 			if (txtField != null) {
-				GPropertyApplyerUtil.applyProperties( txtField, defaultTextFieldProps  );
-				var txtFormat:TextFormat = new TextFormat();
-				cachedProps = GPropertyApplyerUtil.applyPropertiesAsString(txtField, txtFormat);
-				txtField.defaultTextFormat = txtFormat;
+				textPropApplier.applyProperties( txtField, defaultTextFieldProps  );
 			}
-			
-			var tarValue:String = node.firstChild.nodeValue;
-			if (tarValue == null) return cachedProps; 
+	
+			var tarValue:String = node.firstChild ? node.firstChild.nodeValue : null;
+			if (tarValue == null) return; 
 			if (disp is IText) (disp as IText).text = bindText(tarValue)
 			else if (txtField != null) txtField.text = bindText(tarValue);
-		
-			return cachedProps;
 		}
 		
-		protected function injectDisplayProps(disp:DisplayObject, props:Object, node:XMLNode):Object {
-			var cachedProps:Object = null;
-		
-			//	if (disp is IPropertyApplyable) (disp as IPropertyApplyable).applyProperties(props);
-			//else cachedProps = GPropertyApplyerUtil.applyCachableProperties( disp, props );
-			
-			cachedProps = GPropertyApplyerUtil.applyCachableProperties( disp, props );
-			return cachedProps;
+		protected function injectDisplayProps(disp:DisplayObject, props:Object, node:XMLNode):void {
+			dispPropApplier.applyProperties( disp, props );
 		}
 		
 		// -- DOM Helpers
@@ -452,6 +462,7 @@
 			for (var i:String in attrib) { // Merge with inline attributes
 				propSel[i] = bindAttribute(attrib[i]);
 			}
+	
 			
 			return propSel;
 		}
@@ -470,7 +481,10 @@
 			
 		}
 		
-		public function destroyRecurse(boo:Boolean=false):void {
+		public function destroyRecurse(boo:Boolean = false):void {
+			for (var i:* in _behCache) {
+				i.destroy();
+			}
 			/*if (boo && _rendered is IRecursableDestroyable) {
 				(_rendered as IRecursableDestroyable).destroyRecurse(boo);
 			}
@@ -483,18 +497,10 @@
 			_xmlCache = null;
 		}
 		
-		protected static function destroyArray(arr:Array):void {
-			for each (var iDes:IDestroyable in arr) {
-				iDes.destroy();
-			}
-		}
+	
 		
 		protected function destroyDisplay(disp:DisplayObject, attrib:Object):void {
 			if (disp is IDestroyable) (disp as IDestroyable).destroy();
-			if (attrib.destroyBehaviours) {
-				destroyArray(attrib.destroyBehaviours);
-				delete attrib.destroyBehaviours;
-			}
 		}
 		
 		protected function destroyAllFromNode(baseNode:XMLNode):void {	
@@ -518,7 +524,11 @@
 		
 		override public function toString():String {
 			return "[A GXMLRender Instance]{" + _renderId + "}";
-	}
+		}
+		
+		public function $toString():String {
+			return super.toString();
+		}
 		
 	}
 	

@@ -12,6 +12,7 @@
 	* <br/><br/>
 	* Examples of classes relying on this event:
 	* @see sg.camo.behaviour.HLayoutBehaviour
+	* @see sg.camo.behaviour.DivLayoutBehaviour
 	* 
 	* @author Glenn Ko
 	*/

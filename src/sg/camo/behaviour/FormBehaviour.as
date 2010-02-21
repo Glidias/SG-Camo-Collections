@@ -178,6 +178,7 @@
 		 * most likely unusable after calling this.
 		 */
 		public function destroy():void {
+			if (formHash == null) return;
 			for (var i:String in formHash) {
 				var chk:IDestroyable = formHash[i] as IDestroyable;
 				if (chk != null) chk.destroy();

@@ -72,6 +72,7 @@
 		}
 		
 		public function destroy():void {
+			if (_disp == null) return;
 			_disp.removeEventListener(listenerType, onSelectedHandler);
 			_disp = null;
 		}

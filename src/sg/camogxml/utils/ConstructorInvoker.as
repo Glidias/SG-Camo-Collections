@@ -1,6 +1,6 @@
 ﻿package sg.camogxml.utils 
 {
-	import camo.core.utils.TypeHelperUtil;
+	import sg.camo.interfaces.ITypeHelper;
 	import sg.camogxml.api.IConstructorInfo;
 	import flash.system.ApplicationDomain;
 	/**
@@ -12,6 +12,7 @@
 	public class ConstructorInvoker
 	{
 		
+		
 		public static function invokeClassWithInfo(classDef:Class, constructInfo:IConstructorInfo, valueParams:Array):* {
 			var len:int = constructInfo.constructorParamsLength;
 			var requiredLen:int = constructInfo.constructorParamsRequired;
@@ -20,7 +21,7 @@
 		
 		
 			if (valueParams.length < requiredLen || valueParams.length > len) {
-				trace("ConstructorInvoker invokeClassWithInfo() failed! Invalid parameters: "+valueParams.length+"/"+requiredLen);
+				throw new Error("ConstructorInvoker invokeClassWithInfo() failed! Invalid parameters: "+valueParams.length+"/"+requiredLen);
 				return null;
 			}
 			
@@ -28,14 +29,14 @@
 				var applyConstructorParams:Array = new Array(len);
 	
 			
-				
+				var typeHelper:ITypeHelper = GXMLGlobals.typeHelper;
 				for (var i:int = 0; i < len; i++ ) {
 	
 					var type:String = typedArray ? typedArray[i] : null;
 				
 					if (type != null) type = type.toLowerCase();
 				
-					var value:* = type!=null ? valueParams[i] is String ? TypeHelperUtil.getType(valueParams[i],type) : valueParams[i] : valueParams[i];
+					var value:* = type!=null ? valueParams[i] is String ? typeHelper.getType(valueParams[i],type) : valueParams[i] : valueParams[i];
 					if (value == null) {
 						trace("ConstructorInvoker :: warning! Resolved constructor value is null for type:"+type);
 					}

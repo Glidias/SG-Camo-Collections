@@ -362,7 +362,6 @@ package camo.core.display
 			removeStageListeners();
 			if (stage!=null) stage.removeEventListener( Event.RENDER, onRender);
 			if (recurse) destroyChildren();
-			display = null;
 		}
 		
 		/**
@@ -478,8 +477,11 @@ package camo.core.display
 
 		override public function addChildAt(child : DisplayObject, index : int) : DisplayObject
 		{
-			invalidate( );
-			return display.addChildAt( child, index );
+			var retChild:DisplayObject = display.addChildAt( child, 0 );
+			dispatchEvent( new CamoChildEvent( CamoChildEvent.ADD_CHILD, child ) );
+			_bubblingDraw = true;
+			invalidate();
+			return retChild;
 		}
 
 	
@@ -543,8 +545,11 @@ package camo.core.display
 	
 		override public function removeChildAt(index : int) : DisplayObject
 		{
-			invalidate( );
-			return display.removeChildAt( index );
+			var retChild:DisplayObject = display.removeChildAt( index )
+			dispatchEvent( new CamoChildEvent( CamoChildEvent.REMOVE_CHILD, retChild) );
+			_bubblingDraw = true;
+			invalidate();
+			return retChild;
 		}
 
 

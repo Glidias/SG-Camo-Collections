@@ -173,7 +173,8 @@ package sg.camogxml.render
 		 */
 		public function set object(o:IDisplayRender):void
 		{
-			if (_usageCount > 0)
+			
+			if (_usageCount > 0 && _emptyNode)
 			{
 				_usageCount--;
 				_emptyNode.data = o;

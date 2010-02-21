@@ -40,6 +40,13 @@
 		 */
 		public static const ADD_LIST_ITEM:String = "addListItem";
 		public static const REMOVE_LIST_ITEM:String = "removeListItem";
+		
+		
+		//  -- IDiv
+		/**
+		 * When a change of zIndex has occured on a IDiv display object element.
+		 */
+		public static const Z_INDEX_CHANGE:String = "zIndexChange";
 	}
 	
 }

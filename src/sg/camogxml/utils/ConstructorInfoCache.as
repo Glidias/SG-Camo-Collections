@@ -2,6 +2,7 @@
 {
 
 	import flash.utils.Dictionary;
+	import flash.utils.getDefinitionByName;
 	import sg.camogxml.api.IConstructorInfo;
 	import camo.core.utils.ClassInspect;
 	
@@ -39,13 +40,25 @@
 
 		private static function getNewConstructorInfo(className:String, targ:*):IConstructorInfo {
 			var classDesc:XML =  ClassInspect.describe(targ);
-			var gotTypedParameters:Boolean = classDesc.method.(@name == 'constructorParams').length() > 0;
-			var constructList:XMLList = gotTypedParameters ? classDesc.method.(@name=='constructorParams') : classDesc.hasOwnProperty('factory') ? classDesc.factory[0].constructor : classDesc.constructor;  //factory[0].
-			if ( constructList.length() < 1 ) return null;
-			var retInfo:ConstructorInfo = new ConstructorInfo(constructList, gotTypedParameters);
+			var classe:Class = targ as Class || getDefinitionByName(classDesc.@name) as Class;
+			var constructList:XMLList = classDesc.hasOwnProperty('factory') ? classDesc.factory[0].constructor : classDesc.constructor; 
+			var paramList:XMLList = constructList[0].parameter
+			var len:int = paramList.length();
+			if (len > 0 && paramList[0].@type.toString() === "*") {
+				if (classe != null) {
+					ConstructorUtils.instantiateNullConstructor(classe, len )
+				}
+				else throw new Error("Failed to create constructor info for non-Class object. Please instantiate first:"+targ);
+				classDesc = ClassInspect.describe(targ);
+				constructList = classDesc.hasOwnProperty('factory') ? classDesc.factory[0].constructor : classDesc.constructor; 
+				paramList = constructList[0].parameter;
+			}
+			var retInfo:ConstructorInfo = new ConstructorInfo(paramList);
 			constructorInfoMap[className] = retInfo;
 			return retInfo;
 		}
+		
+	
 		
 	}
 
@@ -55,34 +68,25 @@ import sg.camogxml.api.IConstructorInfo;
 internal class ConstructorInfo implements IConstructorInfo {
 	
 		private var _requiredLen:int;
-		private var _typedParams:Array = null;
+		private var _typedParams:Array;
 		private var _len:int;
 	
-		public function ConstructorInfo(constructList:XMLList, gotTypedParameters:Boolean) {
+		public function ConstructorInfo(paramList:XMLList) {
 			var requiredLen:int = 0;
 			var i:int;
 			var pNode:XML;
-			var paramList:XMLList = constructList[0].parameter
+
 			var len:int = paramList.length();
 
 			
-			if (gotTypedParameters) {
-				var constructorParams:Array = [];
-				for (i = 0; i < len; i++) {
-					pNode = paramList[i];
-					constructorParams.push(pNode.@type.toString());
-					requiredLen += pNode.@optional != "true" ? 1 : 0;
-				}
-				_typedParams = constructorParams;
+			var constructorParams:Array = [];
+			for (i = 0; i < len; i++) {
+				pNode = paramList[i];
+				var type:String = pNode.@type.toString();
+				constructorParams.push(type);
+				requiredLen += pNode.@optional != "true" ? 1 : 0;
 			}
-			else {
-				paramList = constructList[0].parameter;
-				for (i = 0; i < len; i++) {
-					pNode = paramList[i];
-					if (pNode.@optional.toString() === "true") break;
-					requiredLen++;
-				}
-			}
+			_typedParams = constructorParams;
 			
 			_len = len;
 			_requiredLen = requiredLen;
@@ -96,6 +100,6 @@ internal class ConstructorInfo implements IConstructorInfo {
 		}
 
 		public function getTypedConstructorParams():Array {
-			return _typedParams ? _typedParams.concat() : null; // clone array to prevent accidental changes
+			return _typedParams.concat(); // clone array to prevent accidental changes
 		}
 }

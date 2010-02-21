@@ -19,6 +19,10 @@
 		public var itemLengthDuration:Number = .5;  // average duraiton per item
 		public var ease:Function = Strong.easeOut;
 		private var scrollEvent:Event = new Event(Event.SCROLL);
+		public var onUpdate:Function;
+		public var onUpdateParams:Array;
+		public var onComplete:Function;
+		public var onCompleteParams:Array;
 		
 		public function IndexTweenScrollProxy(targ:IScrollable=null) {
 			super(targ);
@@ -28,13 +32,21 @@
 			var dest:Number = _x + getDestScrollH(ratio);
 			var tarDuration:Number = (diffX(dest) / itemLength) * itemLengthDuration;
 			tarDuration = tarDuration > maxDuration ? maxDuration : tarDuration;
-			TweenLite.to(scrollContent, tarDuration, { x:dest, ease:ease, onUpdate:scrollContainer.dispatchEvent, onUpdateParams:[scrollEvent], onComplete:scrollContainer.dispatchEvent, onCompleteParams:[scrollEvent] } );
+			var $onUpdate:Function = onUpdate!=null ? onUpdate:  scrollContainer.dispatchEvent;
+			var $onUpdateParams:Array = onUpdate!=null ? onUpdateParams : [scrollEvent];
+			var $onComplete:Function = onComplete!=null ? onComplete : scrollContainer.dispatchEvent;
+			var $onCompleteParams:Array = onComplete!=null ? onCompleteParams : [scrollEvent];
+			TweenLite.to(scrollContent, tarDuration, { x:dest, ease:ease, onUpdate:$onUpdate, onUpdateParams:$onUpdateParams, onComplete:$onComplete, onCompleteParams:$onCompleteParams } );
 		}
 		override public function set scrollV (ratio:Number):void {
 			var dest:Number = _y + getDestScrollV(ratio);
 			var tarDuration:Number = (diffY(dest) / itemLength) * itemLengthDuration;
 			tarDuration = tarDuration > maxDuration ? maxDuration : tarDuration;
-			TweenLite.to(scrollContent, tarDuration, { y:dest, ease:ease, onUpdate:scrollContainer.dispatchEvent, onUpdateParams:[scrollEvent], onComplete:scrollContainer.dispatchEvent, onCompleteParams:[scrollEvent] } );
+			var $onUpdate:Function = onUpdate!=null ? onUpdate:  scrollContainer.dispatchEvent;
+			var $onUpdateParams:Array = onUpdate!=null ? onUpdateParams : [scrollEvent];
+			var $onComplete:Function = onComplete!=null ? onComplete : scrollContainer.dispatchEvent;
+			var $onCompleteParams:Array = onComplete!=null ? onCompleteParams : [scrollEvent];
+			TweenLite.to(scrollContent, tarDuration, { y:dest, ease:ease, onUpdate:$onUpdate, onUpdateParams:$onUpdateParams, onComplete:$onComplete, onCompleteParams:$onCompleteParams } );
 		}
 		
 		override public function resetScroll():void {

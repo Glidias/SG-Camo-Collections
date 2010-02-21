@@ -2,7 +2,9 @@
 {
 	import flash.utils.Dictionary;
 	/**
-	 * Generic utility to manage singleton references.
+	 * Generic utility to manage singleton references, mainly under the static classes
+	 * in the CamoGXML utilities package.
+	 * 
 	 * @author Glenn Ko
 	 */
 	public class SingletonManager

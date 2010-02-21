@@ -1,11 +1,12 @@
 ﻿package sg.camogxmlgaia.utils 
 {
-	import camo.core.utils.TypeHelperUtil;
 	import flash.system.ApplicationDomain;
 	import flash.utils.describeType;
 	import flash.utils.Dictionary;
 	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
+	import sg.camo.interfaces.ITypeHelper;
+	import sg.camogxml.utils.GXMLGlobals;
 	
 	
 	/**
@@ -50,7 +51,7 @@
 			
 			// Else continue search through XML checklist
 			var retVal:* = attemptResolveRecurse(xmlMap, instanceTarget, findClassName, hashOfImpls);
-			
+			if (retVal == null) throw new Error('Dependency resolveDependency failed:'+xmlMap.toXMLString() + " ::: "+ instanceTarget)
 			return retVal;
 		}
 		
@@ -138,12 +139,12 @@
 				var pushedVal:*;
 				
 				len = paramList.length();
-		
+				var typeHelper:ITypeHelper = GXMLGlobals.typeHelper;
 				for ( var i:int = 0; i < len; i++) {
 					node = paramList[i];
 					
 					if (node.@property == undefined) {
-						pushedVal = node.@type != undefined ? TypeHelperUtil.getType( String(bindingMethod(node.toString()) ), node.@type.toString().toLowerCase() ) : bindingMethod( node.toString()  );
+						pushedVal = node.@type != undefined ? typeHelper.getType( String(bindingMethod(node.toString()) ), node.@type.toString().toLowerCase() ) : bindingMethod( node.toString()  );
 						arr.push( pushedVal )
 					}
 					else if ( instanceTarget.hasOwnProperty(node.@property.toString()) ) {

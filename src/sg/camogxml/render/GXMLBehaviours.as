@@ -55,8 +55,9 @@
 					trace("GXMLBehaviours set modelXML() failed with no found class for:" + _domainPrefix+classAttrib);
 					continue;
 				}
-				var key:String = node.@id || classAttrib;
+				var key:String = node.name();
 				_behHash[key] = tryClass;
+				
 			}
 		}
 		
@@ -92,7 +93,7 @@
 		/** @private */
 		protected function _hasDefinition(str:String):Boolean {
 			var domainPrefix:String = str.indexOf(".") > -1 ? "" : _domainPrefix;
-			trace(domainPrefix + str);
+			
 			return _appDomain.hasDefinition(domainPrefix + str);
 		}
 		

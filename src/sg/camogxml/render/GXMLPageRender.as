@@ -8,6 +8,8 @@
 	import sg.camo.interfaces.IDestroyable;
 	import sg.camo.interfaces.IDisplayRender;
 	import sg.camo.interfaces.IDisplayRenderSource;
+	import sg.camo.interfaces.IPropertyApplier;
+	import sg.camo.interfaces.IRenderFactory;
 	import sg.camo.interfaces.IRenderPool;
 	import sg.camo.interfaces.ISelectorSource;
 	/**
@@ -20,6 +22,8 @@
 	 * 
 	 * @author Glenn Ko
 	 */
+	
+	[Inject(name='gxml',name='gxml',name='gxml',name='gxml',name='',name='textStyle')]
 	public class GXMLPageRender extends GXMLRender implements IDisplayRenderSource
 	{
 		protected var displayRenderSrc:IDisplayRenderSource;
@@ -32,13 +36,12 @@
 		 * @param	behaviours
 		 * @param	displayRenderSrc
 		 */
-		public function GXMLPageRender(definitionGetter:IDefinitionGetter, behaviours:IBehaviouralBase, displayRenderSrc:IDisplayRenderSource, stylesheet:ISelectorSource, inlineStyleSheetClass:Class=null) 
+		public function GXMLPageRender(definitionGetter:IDefinitionGetter, behaviours:IBehaviouralBase, displayRenderSrc:IDisplayRenderSource, stylesheet:ISelectorSource, propApplier:IPropertyApplier, textPropApplier:IPropertyApplier) 
 		{
-			super(definitionGetter, behaviours, stylesheet, inlineStyleSheetClass);	
+			super(definitionGetter, behaviours, stylesheet, propApplier, textPropApplier);	
 			this.displayRenderSrc = displayRenderSrc;
 		}
-		// Marker method to reflect constructor arguments
-		public static function constructorParams(definitionGetter:IDefinitionGetter, behaviours:IBehaviouralBase, displayRenderSrc:IDisplayRenderSource, stylesheet:ISelectorSource, inlineStyleSheetClass:Class=null):void { };
+		
 
 		
 		/**
@@ -72,7 +75,7 @@
 		
 		/**
 		 * Attempts to retreive available IDisplayRender instance from IDisplayRenderSource by xml node name. If the IDisplayRender instance
-		 * happens to be marked as an IRenderPool, it'll attempt to draw out another IDisplayRender from the  pooling method defined 
+		 * happens to be marked as an IRenderPool/IRenderFactory, it'll attempt to draw out another IDisplayRender from the  pooling method defined 
 		 * by that IDisplayRender class. The resultant IDIsplayRender (if any) is registered into it's local hash of IDisplayRender instances.
 		 * 
 		 * @param	node		The xml node being parsed
@@ -81,7 +84,8 @@
 		 */
 		override protected function getRenderedItem(node:XMLNode, isTxtNode:Boolean):* {
 			var tryRender:IDisplayRender = displayRenderSrc.getRenderById(node.nodeName);
-			if (tryRender is IRenderPool) tryRender = (tryRender as IRenderPool).object;
+			if (tryRender is IRenderPool) tryRender = (tryRender as IRenderPool).object
+			else if (tryRender is IRenderFactory) tryRender = (tryRender as IRenderFactory).createRender();
 
 			if (tryRender !=null) {
 				localHash[tryRender.renderId] = tryRender;
@@ -96,6 +100,7 @@
 		override protected function destroyDisplay(disp:DisplayObject, attrib:Object):void {
 			if (attrib.iRenderDestroy) {
 				attrib.iRenderDestroy.destroy();
+				
 			}
 			else super.destroyDisplay(disp, attrib);
 		}
@@ -106,13 +111,14 @@
 		}
 
 		
-		override protected function injectTextFieldProps(disp:DisplayObject, props:Object, node:XMLNode):Object {
-			return disp is IDisplayRenderSource ? null : super.injectTextFieldProps(disp, props, node);
-			
+		override protected function injectTextFieldProps(disp:DisplayObject, props:Object, node:XMLNode):void {
+			if (disp is IDisplayRenderSource) return;
+			super.injectTextFieldProps(disp, props, node);
 		}
 		
-		override protected function injectDisplayProps(disp:DisplayObject, props:Object, node:XMLNode):Object {
-			return disp is IDisplayRenderSource ?  null : super.injectDisplayProps(disp, props, node);
+		override protected function injectDisplayProps(disp:DisplayObject, props:Object, node:XMLNode):void {
+			if (disp is IDisplayRenderSource) return;
+			super.injectDisplayProps(disp, props, node);
 			//if null todo, consider and apply inline attributes
 		}
 		

@@ -106,7 +106,7 @@
 		}
 		
 		public function destroy():void {
-			AncestorListener.removeEventListenerOf(_dispCont as IEventDispatcher, CamoDisplayEvent.DRAW, alignDisplayHandler);
+			if (_dispCont) AncestorListener.removeEventListenerOf(_dispCont as IEventDispatcher, CamoDisplayEvent.DRAW, alignDisplayHandler);
 			//_dispCont.removeEventListener( CamoDisplayEvent.DRAW, alignDisplayHandler, false);
 			_dispCont = null;
 		}

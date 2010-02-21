@@ -58,8 +58,8 @@
 		}
 		
 		
-		override public function getDefinition(str:String):Class {
-			var chkClass:Class = super.getDefinition(str);
+		override public function getDefinition(str:String):Object {
+			var chkClass:Class = super.getDefinition(str) as Class;
 			if (chkClass == Shape) return DummyBehaviour; // also validates type
 			return chkClass;
 		}

@@ -7,7 +7,8 @@
 	/**
 	 * Property application system conventions for SG-Camo over any textfield. <br/>
 	 * Personally, I'd prefer using a F*CSS IApplicator adaptor to support this under
-	 * a ProxyApplierAdaptor instead.
+	 * a ProxyApplierAdaptor instead. However, this version also applies standard
+	 * properties over the TextField instance itself.
 	 * 
 	 * @see sg.camo.adaptors.ProxyApplierAdaptor;
 	 * @see sg.fcss.adaptors.ApplicatorProxy;
@@ -21,30 +22,26 @@
 		
 		public function TextPropApplierAdaptor(propMapCache:IPropertyMapCache, typeHelper:ITypeHelper) 
 		{
+			super(propMapCache, typeHelper);
 			if (propMapCache == null) return;
-			super(this, propMapCache, typeHelper);
 		}
 		
 		override public function applyProperties(target:Object, properties:Object):void {
-			if (target is TextField) {
-				super.applyProperties(target, properties);
-				
-				var txtField:TextField = target as TextField;
-				var format:TextFormat = new TextFormat();
-		
-				for(var prop:String in properties) {
-					if (format.hasOwnProperty (prop)) {
-						var val:* = properties[prop];
-						val = (val === "true" || val === "false") ? val === "true"  : val;
-						format[prop] =  val;
-					}
+			var txtField:TextField =  target as TextField;
+			if (!txtField) throw new Error("TextPropApplierAdaptor :: Target must be TextField instance");
+			
+			var txtFormat:TextFormat = new TextFormat();
+			for(var prop:String in properties) {
+				if (txtFormat.hasOwnProperty (prop)) {
+					var val:* = properties[prop];
+					val = (val === "true" || val === "false") ? val==="true" : val;
+					target[prop] =  val;
 				}
-				
-				txtField.defaultTextFormat = format;
 			}
-			else {
-				throw new Error("The supplied target was not a TextField.");
-			}
+			txtField.defaultTextFormat = txtFormat;	
+			txtField.setTextFormat(txtField.defaultTextFormat);
+			
+			super.applyProperties(target, properties);
 		}
 		
 	}

@@ -27,7 +27,7 @@
 			var classDesc:XML = describeType( target );
 			var methodList:XMLList = classDesc.method.(@name == methodName);
 			if (methodList.length() > 0) return new FunctionDefinition( target[methodName], methodList[0], overload, delimiter);
-			trace("No method found for:"+methodName + " under "+target);
+			throw new Error("No method found for:"+methodName + " under "+target);
 			return null;
 		}
 		

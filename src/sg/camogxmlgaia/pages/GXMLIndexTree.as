@@ -31,7 +31,7 @@
 	
 	import sg.camogxmlgaia.utils.CamoAssetFilter;
 	
-	import sg.camogxmlgaia.utils.DependencyResolverUtil;
+	import sg.camogxml.utils.DependencyResolverUtil;
 	
 	import flash.utils.getDefinitionByName;
 		
@@ -63,7 +63,7 @@
 		protected static const SUBJECT_TRANSITION:String = "transition";
 		
 		// Node class spawner manager
-		private static const DEFAULT_NODE_CLASS_SPAWNER:String = "sg.camogxmlgaia.inject.NodeClassSpawnerManager";
+		private static const DEFAULT_NODE_CLASS_SPAWNER:String = "sg.camogxml.utils.NodeClassSpawnerManager";
 		
 		// Storage 
 		/** @private */ protected var _transitionManagers:Dictionary = new Dictionary();
@@ -172,7 +172,7 @@
 		/**
 		 * Retrieves an already-available, or not yet available, page instance and inject dependencies
 		 * accordingly into it.
-		 * @param	payload	 A class / class name to instantiate
+		 * @param	classe	 A class  to instantiate
 		 * @param	branch	A specified page branch to determine the lifecycle of the instance, 
 		 * 					otherwise if null or blank, uses current index page branch. You can use unique named instances under
 		 * 					a page branch by specifying a single '*' character and the name after it.
@@ -181,12 +181,12 @@
 		 * @param   subject	A subject key you might want to pass to NodeClassSpawner
 		 * @return
 		 */
-		public function getPageInstance(payload:*, branch:String=null, node:XML = null, subject:*=null):* {	
-			return checkPageInstance(payload, branch, node, subject, createPageInstance);
+		public function getPageInstance(classe:Class, branch:String=null, node:XML = null, subject:*=null):* {	
+			return checkPageInstance(classe, branch, node, subject, createPageInstance);
 		}
 
 		
-		protected function checkPageInstance(payload:*, branch:String, node:XML, subject:*, createMethod:Function, extraArgs:Array=null):* {
+		protected function checkPageInstance(classe:Class, branch:String, node:XML, subject:*, createMethod:Function, extraArgs:Array=null):* {
 			branch = branch || page.branch;
 			extraArgs = extraArgs || [];
 			
@@ -204,15 +204,14 @@
 			if (!pageExists(pageBranch))  throw new Error("GXMLIndexTree checkPageInstance() failed! Page branch doesn't exist:"+pageBranch)
 
 			var dictToRegister:Dictionary = _pageInstances[pageBranch] || (_pageInstances[pageBranch] = new Dictionary());
-			var chkId:String = payload is String ? payload : getQualifiedClassName(payload);  // to convert last dot to :: for first case
+			var chkId:String = getQualifiedClassName(classe);  // to convert last dot to :: for first case
 			chkId = chkIndex > -1 ? chkId + "*" + branch.substr(chkIndex + 1) : chkId;
 			if (dictToRegister[chkId] != null) return dictToRegister[chkId];
-			return createMethod.apply(null, [payload,branch,node,subject,dictToRegister,chkId].concat(extraArgs) );
+			return createMethod.apply(null, [classe,branch,node,subject,dictToRegister,chkId].concat(extraArgs) );
 		}
 
-		protected function createPageInstance(payload:*, branch:String, node:XML, subject:*, dictToRegister:Dictionary, keyToRegister:String):* {
-			var classe:Class = payload is String ? getClass(payload) : payload is Class ? payload : null;
-			if (classe == null) throw new Error("GXMLIndexPage:: createPageInstance failed for:"+payload, branch);
+		protected function createPageInstance(classe:Class, branch:String, node:XML, subject:*, dictToRegister:Dictionary, keyToRegister:String):* {
+			if (classe == null) throw new Error("GXMLIndexPage:: createPageInstance failed for:"+classe, branch);
 			var instance:* = node != null ? _nodeClassSpawnerManager.spawnClassWithNode(classe, node, subject) : new classe();
 			dictToRegister[keyToRegister] = instance;
 			return instance;
@@ -315,9 +314,14 @@
 		public function get curPageRenderPath():String {
 			return _curPageRenderPath;
 		}
-		public function get currentTransitionManagerMethod():IFunctionDef {
+		
+		public function get currentTransitionManager():ITransitionManager {
 			var page:IPageAsset = Gaia.api.getPage(_curPageRenderPath);
-			var transManager:ITransitionManager =  _transitionManagers[page] as ITransitionManager;
+			return  _transitionManagers[page] as ITransitionManager;
+		}
+		
+		public function get currentTransitionManagerMethod():IFunctionDef {
+			var transManager:ITransitionManager = currentTransitionManager;
 			if (transManager == null) return null;
 
 			 // assumpion made on last 2 params
@@ -579,9 +583,10 @@
 			child.visible = true;  // imply always visible, since default Gaia assets start out invisible by default
 			
 			switch (depth) {
-				case Gaia.TOP:
+				case Gaia.TOP:  
 				case Gaia.MIDDLE:
-				case Gaia.BOTTOM: Gaia.api.getDepthContainer(depth).addChild(child);
+				case Gaia.BOTTOM: 
+								Gaia.api.getDepthContainer(depth).addChild(child);
 								  return;
 				case Gaia.NESTED:
 				case "page":	

@@ -1,4 +1,5 @@
 ﻿package sg.camo.behaviour {
+	import flash.events.IEventDispatcher;
 	import sg.camo.form.FormValidator;
 	import flash.text.TextField;
 	import sg.camo.interfaces.IBehaviour;
@@ -53,6 +54,7 @@
 	public class FormFieldBehaviour implements IBehaviour, IFormElement, ITextField {
 		
 		protected var _targField:TextField;
+		protected var _targDispatcher:IEventDispatcher;
 		
 		protected var _key:String = "";
 		
@@ -72,8 +74,10 @@
 		public var errorMsg		:String = "Error msg";				
 		
 		
-		public static const FOCUS_IN:String = "formFieldBeh_focusIn";
-		public static const FOCUS_OUT:String = "formFieldBeh_focusOut";
+		public static const FOCUS_IN:String = "FormFieldBehaviour.FOCUS_IN";
+		public static const FOCUS_OUT:String = "FormFieldBehaviour.FOCUS_OUT";
+		public static const ERROR:String = "error";
+		public static const VALID:String = "valid";
 		
 		/**
 		 *  Default instantiation value. Sets default error textformat to use for all textfields.
@@ -122,19 +126,23 @@
 		}
 		
 		/**
-		 * Activates TextField or ITextField instance
+		 * Activates TextField or ITextField instance, which must also be an IEventDispatcher.
 		 * @param	targ	A valid TextField or ITextField instance.
 		 */
 		public function activate(targ:*):void {
 			if (_activated) {
 				return;
 			}
+			_targDispatcher = targ as IEventDispatcher;
+			if (_targDispatcher == null) throw new Error("Target isn't an IEventDispatcher:"+targ);
+			
 			var target:TextField = targ is TextField ? targ as TextField : targ is ITextField ? (targ as ITextField).textField : null;
 			if (target == null) {
 				trace("FormFieldBehaviour activate() halt. targ as TextField is null!");
 			}
 			_activated = true;
 			_targField = target;
+			
 			
 			//trace("Activating new:"+_targField.name);
 			
@@ -181,12 +189,14 @@
 			if (_targField.text == defaultMsg) _targField.text = "";
 			if (_targField.text== errorMsg) _targField.text = prevInput;
 			_targField.displayAsPassword = isPassword;
-			_targField.dispatchEvent(new Event(FOCUS_IN, true, false) );
+			if ( !(_targDispatcher is TextField) && !e.bubbles ) _targDispatcher.dispatchEvent(e);
+			_targDispatcher.dispatchEvent(new Event(FOCUS_IN, true, false) );
 		}
 		
 		private function focusOutHandler(e:FocusEvent):void {
 			if (_targField.text == "") reset();
-			_targField.dispatchEvent(new Event(FOCUS_OUT, true, false) );
+			if ( !(_targDispatcher is TextField) && !e.bubbles ) _targDispatcher.dispatchEvent(e);
+			_targDispatcher.dispatchEvent(new Event(FOCUS_OUT, true, false) );
 		}
 		
 		public function destroy():void {
@@ -217,6 +227,7 @@
 		 */
 		public function set errorTxtFormat(txtFormat:TextFormat):void {
 			_errorTxtFormat = txtFormat;
+			
 		}
 		
 		
@@ -245,7 +256,7 @@
 					_targField.setTextFormat(_errorTxtFormat);
 					//_targField.defaultTextFormat = _errorTxtFormat;
 				}
-				
+				_targDispatcher.dispatchEvent( new Event(ERROR) );
 			}
 			else {
 				if (prevInput != "" && prevInput != defaultMsg)  {
@@ -256,6 +267,7 @@
 					_targField.defaultTextFormat = _defaultTxtFormat;
 					
 				}
+				_targDispatcher.dispatchEvent( new Event(VALID) );
 			}
 		}
 		

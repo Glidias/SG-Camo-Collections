@@ -12,7 +12,6 @@
 	import sg.camo.interfaces.IDestroyable;
 	import sg.camo.interfaces.IDisplayRender;
 	import sg.camo.interfaces.IDisplayRenderSource;
-	import sg.camo.ancestor.AncestorListener;
 	import sg.camo.interfaces.ILabler;
 	import sg.camo.interfaces.IList;
 	import sg.camo.interfaces.IRenderFactory;
@@ -628,8 +627,8 @@
 		/** @private */
 		protected function addAnchorToDisplay(disp:DisplayObject, node:XML, text:String = null):void {
 			
-			if (_anchors[disp]) AncestorListener.removeEventListenerOf(disp, MouseEvent.CLICK, hrefClickHandler);  // rep
-			AncestorListener.addEventListenerOf(disp, MouseEvent.CLICK, hrefClickHandler, 0, false);
+			if (_anchors[disp]) disp.removeEventListener(MouseEvent.CLICK, hrefClickHandler);  // rep
+			disp.addEventListener(MouseEvent.CLICK, hrefClickHandler, false, 0, true);
 			if (text != null) {
 				populateTextOf(disp, text);
 			}
@@ -744,7 +743,7 @@
 			
 			for (i in hash) {
 
-				AncestorListener.removeEventListenerOf(i, MouseEvent.CLICK, hrefClickHandler)
+				i.removeEventListener(MouseEvent.CLICK, hrefClickHandler)
 
 				//TO factor out to seperate funciton in extened class
 				/*var node:XML = hash[i];

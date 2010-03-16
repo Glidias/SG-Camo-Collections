@@ -20,8 +20,7 @@
 	
 	import sg.camo.interfaces.IDestroyable;
 	import sg.camo.interfaces.IBehaviour;
-		
-	import sg.camo.ancestor.AncestorListener;
+
 	
 	/**
 	* Original BoxModel implementation of Camo's BoxModelDisplay factored out to a seperate behaviour.
@@ -79,15 +78,14 @@
 		
 		public function activate(targ:*):void {
 			_target = targ as IDisplay;
-			AncestorListener.addEventListenerOf( _target as IEventDispatcher, CamoDisplayEvent.DRAW, draw);
-			//targ.addEventListener(CamoDisplayEvent.DRAW, draw, false , 0, true);
+			_target.addEventListener( CamoDisplayEvent.DRAW, draw, false, 0, true);
 			display = targ.getDisplay();
 			_target.width = targ.width;
 			_target.height = targ.height;
 		}
 		
 		public function destroy():void {
-			if (_target) AncestorListener.removeEventListenerOf( _target as IEventDispatcher, CamoDisplayEvent.DRAW, draw);
+			if (_target)  _target.removeEventListener( CamoDisplayEvent.DRAW, draw);
 
 			display = null;
 			_target = null;

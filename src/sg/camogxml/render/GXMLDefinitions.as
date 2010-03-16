@@ -25,7 +25,17 @@
 			modelXML = xml;
 		}
 		
-		// -- IDomainModel injection
+		
+		// Manual injecting/removal of definitions
+		public function addDefinition(id:String, definition:Object):void {
+			_defs[id] = definition;
+		}
+		public function removeDefinition(id:String, definition:Object):void {
+			delete _defs[id];
+		}
+		
+		
+		// -- IDomainModel injection through XML
 		public function set appDomain(domain:ApplicationDomain):void {
 			_domain = domain;
 		}
@@ -53,6 +63,7 @@
 			}
 			parseClassList(nodeList, curDomain);
 		}
+		
 		
 		private function parseClassList(nodeList:XMLList, curDomain:ApplicationDomain ):void {
 			for each(var xmlItem:XML in nodeList) {

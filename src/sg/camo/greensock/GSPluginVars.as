@@ -60,10 +60,11 @@
 		
 		protected var _appDomain:ApplicationDomain;
 		
-		
-		
 		protected var _typeHelper:ITypeHelper;
 		protected var _propMapCache:IPropertyMapCache;
+		
+		
+		
 		
 		
 		
@@ -185,16 +186,20 @@
 
 		
 		public static function getNumericObject(str:String):Object {
+			trace(str);
 			var val:Object = stringToObject(str, "~", "@");
+		
 			for (var i:String in val) {
 				if ( i.charAt(0) != "*" ) {
 					val[i] = Number(val[i]);
+					trace(i, val[i]);
 				}
 				else {  // also consider relative values
 					val[i.substr(1)] = val[i];
 					delete val[i];
 				}
 			}
+			
 			return val;
 		}
 		
@@ -238,16 +243,18 @@
 			return color;
 		}
 		
-		protected static function stringToObject(data : String, returnType : String, dataDelimiter : String = "," ,propDelimiter : String = ":") : * 
+		protected static function stringToObject(data : String, dataDelimiter : String = "," ,propDelimiter : String = ":") : * 
 		{
 			var dataContainer : Object = {};
 
 			var list : Array = data.split( dataDelimiter );
+			trace(list);
 			var total : Number = list.length;
 
 			for (var i : Number = 0; i < total ; i ++) 
 			{
 				var prop : Array = list[i].split( propDelimiter );
+				
 				dataContainer[prop[0]] = prop[1];
 			}
 			

@@ -20,7 +20,7 @@
 		function getRenderedById(id:String):DisplayObject; 
 		
 		
-		// -- Currently not exactly used ATM
+		// -- Currently not exactly used ATM. To depreciate..
 		
 		/**  support for restoring back any default settings that were changed during the course of the application */
 		function restore(changedHash:Object = null):void; 

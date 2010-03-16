@@ -1,6 +1,7 @@
 ﻿package sg.camogxmlgaia.api 
 {
 	import sg.camogxml.api.IDTypedStack;
+	import sg.camo.interfaces.INodeClassSpawner;
 	
 	/**
 	 * This interface is implemented by all 'index/sub-index' pages under any CamoGXMLGaia site.
@@ -18,11 +19,6 @@
 		function get nodeClassSpawner():INodeClassSpawner; 
 		function getStack(id:String):IDTypedStack;
 		function getNewStack(id:String):IDTypedStack;
-		
-		//TODO: dynamic object instantiation, caching and lifecycle management
-		// function getSingleton(payload:*);
-		// function getPageInstance(payload:*, pageBranch:String="", instanceName:String="");
-		
 	}
 	
 }

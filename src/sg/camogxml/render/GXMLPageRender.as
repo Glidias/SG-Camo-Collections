@@ -72,6 +72,7 @@
 			return arr;
 		}
 		
+
 		
 		/**
 		 * Attempts to retreive available IDisplayRender instance from IDisplayRenderSource by xml node name. If the IDisplayRender instance
@@ -91,8 +92,14 @@
 				localHash[tryRender.renderId] = tryRender;
 				//if (node.attributes.id) localHash[node.attributes.id] = tryRender;
 				var render:DisplayObject = tryRender.rendered; 
+				
+				dispPropApplier.applyProperties(render, node.attributes);
+				
 				node.attributes.iRenderDestroy  = tryRender as IDestroyable;
+				
+				
 			}
+			
 
 			return render || super.getRenderedItem(node, isTxtNode);
 		}
@@ -111,15 +118,16 @@
 		}
 
 		
-		override protected function injectTextFieldProps(disp:DisplayObject, props:Object, node:XMLNode):void {
-			if (disp is IDisplayRenderSource) return;
-			super.injectTextFieldProps(disp, props, node);
+		override protected function injectTextFieldProps(disp:DisplayObject, props:Object, node:XMLNode):Object {
+			if (disp is IDisplayRenderSource) return null;
+			return super.injectTextFieldProps(disp, props, node);
 		}
 		
 		override protected function injectDisplayProps(disp:DisplayObject, props:Object, node:XMLNode):void {
 			if (disp is IDisplayRenderSource) return;
+			
 			super.injectDisplayProps(disp, props, node);
-			//if null todo, consider and apply inline attributes
+			
 		}
 		
 	}

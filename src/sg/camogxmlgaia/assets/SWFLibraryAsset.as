@@ -58,6 +58,8 @@
 			super();
 		}
 		
+	
+		
 		private function dtrace(msg:Object):void
 		{
 			if(debug)
@@ -176,7 +178,7 @@
 		 * @param	className
 		 * @return 	The class definition itself. (useful for fonts or other shizzle)
 		 */
-		public function getDefinition(className:String):Class
+		public function getDefinition(className:String):Object
 		{
 			return classesDictionary[className];
 			//return classesDictionary[className] is Class ? classesDictionary[className] : reInitclass(className);

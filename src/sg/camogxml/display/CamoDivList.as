@@ -6,7 +6,6 @@
 	import flash.utils.Dictionary;
 	import sg.camo.interfaces.IDestroyable;
 	import sg.camo.interfaces.IDisplayRender;
-	import sg.camo.interfaces.IDisplayRenderSource;
 	import sg.camo.interfaces.IIndexable;
 	import sg.camo.interfaces.IList;
 	import sg.camo.interfaces.IListItem;
@@ -25,8 +24,7 @@
 		/** If render src is provided, will attempt to render dividers through IDisplayRenderSource 
 		 * with assosiated id. */
 		[Inject(name='gxml')] 
-		public var dividerRenderSrc:IDisplayRenderSource;
-		public var dividerRenderId:String = "NO ID SPECIFIED";
+		public var dividerRender:IDisplayRender;
 		
 		/** Concrete Displayobject class to use by default for rendering list items */
 		public var listItemClass:Class;
@@ -34,8 +32,7 @@
 		/** If render src is provided, will attempt to render list items through IDisplayRenderSource 
 		 * with assosiated id.  */
 		[Inject(name='gxml')] 
-		public var listItemRenderSrc:IDisplayRenderSource;
-		public var listItemRenderId:String = "NO ID SPECIFIED";
+		public var listItemRender:IDisplayRender;
 		
 		/** @private */
 		protected var _listHash:Dictionary = new Dictionary();
@@ -75,27 +72,12 @@
 		
 		/** @private */
 		protected function getListItem():DisplayObject {
-			return  listItemRenderSrc ? getRenderedFrom(listItemRenderSrc,listItemRenderId,listItemClass)  : listItemClass ? new listItemClass() as DisplayObject : null;
+			return  listItemRender ? listItemRender.rendered : listItemClass ? new listItemClass() as DisplayObject : null;
 		}
 		protected function getDividerItem():DisplayObject {
-			return  dividerRenderSrc ? getRenderedFrom(dividerRenderSrc,dividerRenderId,dividerClass)  : dividerClass ? new dividerClass() as DisplayObject : null;
+			return  dividerRender ? dividerRender.rendered  : dividerClass ? new dividerClass() as DisplayObject : null;
 		}
 		
-		/** @private */
-		protected static function getRenderedFrom(renderSrc:IDisplayRenderSource, id:String, defaultClass:Class=null):DisplayObject {
-			var findRender:IDisplayRender = renderSrc.getRenderById(id);
-			if (findRender == null) {
-				trace( new Error("CamoDivList find display render failed for:" + id) );
-				return defaultClass ? new defaultClass() as DisplayObject  : null; // revert to default if available
-			}
-			var retDisp:DisplayObject = findRender.rendered;
-			if (retDisp == null) {
-				trace( new Error("CamoDivList can't find rendered display object for render:" + id) );
-				return defaultClass ? new defaultClass() as DisplayObject  : null;// revert to default if available
-			}
-			
-			return retDisp;
-		}
 		
 		public function addListItem (label:String, id:String):DisplayObject {
 			var listItem:DisplayObject = getListItem();
@@ -131,9 +113,7 @@
 			super.destroy();
 			_listHash = null;
 			dividerClass = null;
-			dividerRenderSrc = null;
 			listItemClass = null;
-			listItemRenderSrc = null;
 		}
 				
 		override public function contains(child:DisplayObject):Boolean {

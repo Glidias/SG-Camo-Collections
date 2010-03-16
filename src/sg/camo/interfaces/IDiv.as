@@ -13,6 +13,7 @@
 	*/
 	public interface IDiv 
 	{
+
 		function set displayFlow(str:String):void; 
 		function get displayFlow():String;
 		

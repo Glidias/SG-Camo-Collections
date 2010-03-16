@@ -1,5 +1,6 @@
 ﻿package sg.camogxml.api 
 {
+	import sg.camo.interfaces.IBehaviour;
 	import sg.camo.interfaces.IDisplayRender;
 	
 	/**

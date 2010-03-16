@@ -22,11 +22,21 @@
 	 */
 	public class DisplayRenderSourceAsset extends DisplayRenderAsset implements IDisplayRenderSource, ISourceAsset
 	{
-		protected var _dispRenders:Array = [];
+		protected var _dispRenders:Array;
 
 		public function DisplayRenderSourceAsset() 
 		{
 			super();
+		}
+		
+		override public function init():void {
+			super.init();
+			_dispRenders = [];
+		}
+		
+		override public function destroy():void {
+			super.destroy();
+			_dispRenders = null;
 		}
 		
 		public function get sourceType():String {
@@ -72,6 +82,8 @@
 			_dispRenders = retArr;
 			
 		}
+		
+
 		
 		override public function toString():String
 		{

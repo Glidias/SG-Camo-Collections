@@ -64,38 +64,7 @@
 			return _myListTransition;
 		}
 
-		// Proxy Boiler-plate....GRRRR.... need Proxy property application system.
-		public function set forEachEase(str:String):void {
-			propMap['forEachEase'] = EasingMethods.getEasingMethod(str);
-		}
-		
-		public function set forEachEaseIn(str:String):void  {
-			propMap['forEachEaseIn'] = EasingMethods.getEasingMethod(str);
-		}
-		public function set forEachEaseOut(str:String):void  {
-			propMap['forEachEaseOut'] = EasingMethods.getEasingMethod(str);
-		}
-		
-		
-		public function set forEachDuration(val:Number):void {
-			propMap['forEachDuration'] = val;
-		}
-		public function set stagger(val:Number):void  {
-			propMap['stagger'] = val;
-		}
-		
-		
-		public function set containerFirst(val:Boolean):void {
-			propMap['containerFirst'] = val;
-		}
-		
-		public function set forEachInVars(val:Object):void {
-			propMap['forEachInVars'] = val;
-		}
-		public function set forEachFromVars(val:Object):void {
-			propMap['forEachFromVars'] = val;
-		}
-		
+	
 		
 		
 	}

@@ -27,6 +27,11 @@
 			super();
 		}
 		
+		override public function destroy():void {
+			super.destroy();
+			_displayRender = null;
+		}
+		
 		public function get displayRender():IDisplayRender {
 			return _displayRender;
 		}

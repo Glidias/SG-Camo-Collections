@@ -1,6 +1,8 @@
 ﻿package sg.camogxml.utils 
 {
 	import flash.utils.describeType;
+	import flash.utils.Dictionary;
+	import flash.utils.getQualifiedClassName;
 	import sg.camogxml.api.IFunctionDef;
 	
 	/**
@@ -12,6 +14,9 @@
 	 */
 	public class FunctionDefCreator
 	{
+		
+		private static var CACHED_DEFS:Dictionary = new Dictionary();
+		
 		/**
 		 * Searches for a given method in a particular target class or instance, and returns a function definition of it
 		 * @param	target		A target Class or instance. If only a Class is specified, than only the Class' static methods are 
@@ -24,11 +29,24 @@
 		 * @return	A IFunctionDef containing information on the method, or null if no method is found.
 		 */
 		public static function create(target:*, methodName:String, overload:Boolean=false, delimiter:String=","):IFunctionDef {
-			var classDesc:XML = describeType( target );
+		
+			var classDesc:XML =  describeType( target );
 			var methodList:XMLList = classDesc.method.(@name == methodName);
+			
 			if (methodList.length() > 0) return new FunctionDefinition( target[methodName], methodList[0], overload, delimiter);
 			throw new Error("No method found for:"+methodName + " under "+target);
 			return null;
+		}
+		
+		/**
+		 * Gets and caches a fixed function definition.
+		 * @param	target
+		 * @param	methodName
+		 * @return	
+		 */
+		public static function get(target:*, methodName:String, overload:Boolean=false, delimiter:String=","):IFunctionDef {
+			var className:String = getQualifiedClassName(target);
+			return CACHED_DEFS[className + "+" + methodName] || (CACHED_DEFS[className + "+" + methodName] = create(target, methodName, overload, delimiter));
 		}
 		
 		public static function fromXML(node:XML, method:Function=null):IFunctionDef {

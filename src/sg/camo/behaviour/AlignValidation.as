@@ -11,6 +11,8 @@
 		public static const NONE:String = "none";
 		public static const LEFT:String = "left";
 		public static const MIDDLE:String = "middle";
+		public static const CENTER:String = "center";
+		public static const CENTRE:String = "centre";
 		public static const RIGHT:String = "right";
 		public static const TOP:String = "top";
 		public static const BOTTOM:String = "bottom";
@@ -30,7 +32,9 @@
 			switch (str) {
 				case NONE: return VALUE_NONE;
 				case LEFT: return 0;
-				case MIDDLE: return .5;
+				case MIDDLE: 
+				case CENTRE: 
+				case CENTER: return .5;
 				case RIGHT: return 1;
 				default:break;
 			}
@@ -45,7 +49,7 @@
 		public static function toVAlignRatio(str:String):Number {
 			var ratio:Number = Number(str);
 			if ( !isNaN(ratio) ) {
-				if (ratio >=0 && ratio <= 1) return ratio;
+				return ratio;
 			}
 			switch (str) {
 				case NONE: return VALUE_NONE;

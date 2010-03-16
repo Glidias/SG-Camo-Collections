@@ -33,6 +33,7 @@
 package camo.core.display
 {
 	import flash.display.DisplayObject;	
+	import sg.camo.interfaces.IRefreshable;
 
 	/**
 	* An IDisplay instance normally refers to a DisplayObjectContainer (usually extending from Sprite/MovieClip),
@@ -50,22 +51,20 @@ package camo.core.display
 	* <br/><br/>
 	* 
 	  */
-	public interface IDisplay
+	public interface IDisplay extends IRefreshable
 	{
-		// --Required implementations
-		
-		// stage validation/invalidation and auto-refresh
+
 		/**
-		 * Normally refreshes the container and display immediately, updating with any  size/alignment changes.
-		 */
-		function refresh():void;
-		/**
-		 * Invalidates the display so it'll attempt a refresh and display update on the next
-		 * Event.RENDER dispatched from the stage.
+		 * Invalidates the display so it'll attempt a refresh and display update (which could be Event.RENDER or
+		 * Event.ENTER_FRAME), depending on the class. Normally used for style/color changes.
 		 */
 		function invalidate():void;	
+		/**
+		 * Invalidating the size normally causes a new draw event to be dispatched which is bubbling. 
+		 * Bubbling draw events often denote size changes, in which changes to child layouts (and all
+		 * parent layouts up the display list chain) are to be updated as a result of size changes.
+		 */
 		function invalidateSize():void;
-		
 		
 		// nested display
 		/**

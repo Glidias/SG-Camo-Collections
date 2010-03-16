@@ -1,6 +1,7 @@
 ﻿package sg.camogxmlgaia.robotlegs.adaptors 
 {
 	import org.robotlegs.core.IContext;
+	import org.robotlegs.core.IInjector;
 	import sg.camo.interfaces.IDestroyable;
 
 	/**
@@ -11,8 +12,11 @@
 		
 		private var context:IContext;
 		
-		public function RLDestroyableContext(vc:Object, instance:IContext) {
-			context = instance;
+		[Inject]
+		public var injector:IInjector;
+		
+		public function RLDestroyableContext(vc:Object, context:IContext) {
+			this.context = context;
 		}
 		
 		public function destroy():void {

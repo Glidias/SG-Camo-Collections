@@ -6,7 +6,6 @@
 	import flash.events.Event;
 	import camo.core.events.CamoDisplayEvent;
 	import camo.core.display.IDisplay;
-	import sg.camo.ancestor.AncestorListener;
 	import sg.camo.interfaces.IDisplayBase;
 	
 	/**
@@ -34,17 +33,22 @@
 		/** @private Casted IDisplayBase interface for container, if available. */
 		protected var _dispBase:IDisplayBase;
 		
-		/** Non-immutable setups */
+		
 		public var _alignRatio:Number = AlignValidation.VALUE_NONE;
+		public var _vAlignRatio:Number = AlignValidation.VALUE_NONE;
+		
+		[CamoInspectable(description = "Sets horizontal alignment in relation to parent's dimensions", type="alignRatio", defaultValue="none")]
 		public function set align(val:String):void {
 			_alignRatio = AlignValidation.toAlignRatio(val);
 			if (_dispCont) InvalidateDisplay.invalidate(_dispCont);
 		}
-		public var _vAlignRatio:Number = AlignValidation.VALUE_NONE;
+		
+		[CamoInspectable(description = "Sets vertical alignment in relation to parent's dimensions", type="vAlignRatio", defaultValue="none")]
 		public function set vAlign(val:String):void {
 			_vAlignRatio = AlignValidation.toVAlignRatio(val);
 			if (_dispCont) InvalidateDisplay.invalidate(_dispCont);
 		}
+		
 		public static const VALUE_NONE:int = AlignValidation.VALUE_NONE;
 		public static const NONE:String = AlignValidation.NONE;
 		public static const LEFT:String = AlignValidation.LEFT;
@@ -65,6 +69,9 @@
 		protected var _top:Number = Number.NaN;
 		protected var _bottom:Number = Number.NaN;
 		protected var _right:Number = Number.NaN;
+		
+		
+		[CamoInspectable(description = "Sets absolute positioning off parent container's edge",defaultValue="NaN")]
 		public function set left(num:Number):void {
 			_left = num;
 			if (_dispCont) InvalidateDisplay.invalidate(_dispCont);
@@ -73,6 +80,7 @@
 			return _left;
 		}
 		
+		[CamoInspectable(description = "Sets absolute positioning off parent container's edge",defaultValue="NaN")]
 		public function set top(num:Number):void {
 			_top = num;
 			if (_dispCont) InvalidateDisplay.invalidate(_dispCont);
@@ -81,6 +89,7 @@
 			return _top;
 		}
 		
+		[CamoInspectable(description = "Sets absolute positioning off parent container's edge",defaultValue="NaN")]
 		public function set right(num:Number):void {
 			_right = num;
 			if (_dispCont) InvalidateDisplay.invalidate(_dispCont);
@@ -89,6 +98,7 @@
 			return _right;
 		}
 		
+		[CamoInspectable(description = "Sets absolute positioning off parent container's edge",defaultValue="NaN")]
 		public function set bottom(num:Number):void {
 			_bottom = num;
 			if (_dispCont) InvalidateDisplay.invalidate(_dispCont);
@@ -169,7 +179,7 @@
 				default:  break;
 			}
 			alignDisplayHandler();
-			AncestorListener.addEventListenerOf(_dispCont as IEventDispatcher, CamoDisplayEvent.DRAW, alignDisplayHandler, -1);
+			_dispCont.addEventListener( CamoDisplayEvent.DRAW, alignDisplayHandler, false, -1, true);
 		}
 		
 		/**
@@ -203,7 +213,7 @@
 		}
 		
 		public function destroy():void {
-			if (_dispCont) AncestorListener.removeEventListenerOf(_dispCont as IEventDispatcher, CamoDisplayEvent.DRAW, alignDisplayHandler);
+			if (_dispCont) _dispCont.removeEventListener(CamoDisplayEvent.DRAW, alignDisplayHandler);
 			_dispCont = null;
 			_disp = null;
 		}

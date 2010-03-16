@@ -376,21 +376,21 @@
 		
 		/** @private */
 		protected function getValidRemoveListener(targ:IScrollable):Function {
-			return	targ is IAncestorSprite ? (targ as IAncestorSprite).$removeEventListener : targ.removeEventListener;
+			return	targ.removeEventListener;
 		}
 		
 		/** @private */
 		protected function getValidAddListener(targ:IScrollable):Function {
-			return	targ is IAncestorSprite ? (targ as IAncestorSprite).$addEventListener : targ.addEventListener;
+			return	 targ.addEventListener;
 		}
 	
 		/** @private */
 		protected function setupScrollContainer (targ:Sprite):Sprite {
-			var func:Function = targ is IAncestorSprite ? (targ as IAncestorSprite).$addEventListener : targ.addEventListener;
+			
 
 			//func (FocusEvent.FOCUS_IN, focusInHandler, false, 0, true);
 			//func (FocusEvent.FOCUS_OUT, focusOutHandler, false, 0, true);
-			func (MouseEvent.MOUSE_WHEEL, mouseWheelHandler, false, 0, true);
+			targ.addEventListener (MouseEvent.MOUSE_WHEEL, mouseWheelHandler, false, 0, true);
 			//addEventListener (FocusEvent.FOCUS_IN, focusInHandler, false, 0, true);
 		//	addEventListener (FocusEvent.FOCUS_OUT, focusOutHandler, false, 0, true);
 		//	addEventListener (MouseEvent.MOUSE_WHEEL, mouseWheelHandler, false, 0, true);

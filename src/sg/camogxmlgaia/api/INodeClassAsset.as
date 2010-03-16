@@ -1,5 +1,6 @@
 ﻿package sg.camogxmlgaia.api 
 {
+	import sg.camo.interfaces.INodeClassSpawner;
 	
 	/**
 	 * Marker interface for assets that require dynamic instantiation/dependency injection

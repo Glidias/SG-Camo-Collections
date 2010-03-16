@@ -7,7 +7,6 @@
 	import flash.display.DisplayObjectContainer;
 	import flash.errors.IllegalOperationError;
 	import flash.events.Event;
-	import sg.camo.ancestor.AncestorListener;
 	import sg.camo.interfaces.IAncestorSprite;
 	
 	/**
@@ -24,10 +23,11 @@
 		 */
 		protected var _addChildDepth:int = -1;
 		
+		[CamoInspectable(description = "Attempts to add any children at a particular fixed child index value. This also affects the flow of the layout.", defaultValue = "-1", immutable="redo", type="pint")]
 		public function set addChildDepth(val:Number):void {
 			if (_disp ) {
-				if ( _addChildDepth >= 0) AncestorListener.removeEventListenerOf(_disp, CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler);
-				if (val >= 0) AncestorListener.addEventListenerOf(_disp, CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler, 1, true);
+				if ( _addChildDepth >= 0) _disp.removeEventListener( CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler)
+				if (val >= 0) _disp.addEventListener( CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler, false, 1, true);
 			}
 			_addChildDepth = int(val);
 		}
@@ -48,11 +48,11 @@
 		
 		override public function activate(targ:*):void {
 			super.activate(targ);
-			if (_disp && _addChildDepth >=0 ) AncestorListener.addEventListenerOf(_disp, CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler, 1, true);
+			if (_disp && _addChildDepth >=0 ) _disp.addEventListener(CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler,false, 1, true);
 		}
 		
 		override public function destroy():void {
-			if (_disp) AncestorListener.removeEventListenerOf(_disp, CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler);
+			if (_disp) _disp.removeEventListener(CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler);
 			super.destroy();
 		}
 		
@@ -61,7 +61,7 @@
 		}
 		
 		override protected function addChildHandler(e:CamoChildEvent):void {
-	
+			
 			var child:DisplayObject = e.child;
 			var curIndex:int = _disp.getChildIndex(child);
 			var numChildren:int = _disp.numChildren;
@@ -102,6 +102,9 @@
 
 		override protected function reDrawHandler(e:CamoDisplayEvent):void {
 			if (!e.bubbles) return;  // non bubbling events assumed no resizing occured
+			
+		
+			
 			var child:DisplayObject = e.target as DisplayObject;
 			//var gotParent:Boolean = _disp is IDisplay ? lastChild.parent === (_disp as IDisplay).getDisplay() : lastChild.parent === _disp;
 			var gotParent:Boolean =  _disp is IDisplay ? child.parent ? child.parent.parent === _disp  :  false :child.parent === _disp;
@@ -128,7 +131,9 @@
 					lastChild = child;
 					curIndex++;
 				}
+				_disp.dispatchEvent( new CamoDisplayEvent(CamoDisplayEvent.DRAW, true) );
 			}
+			
 		}
 		
 	}

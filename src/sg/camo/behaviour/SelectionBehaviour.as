@@ -7,7 +7,6 @@
 	import sg.camo.interfaces.ISelection;
 	import flash.events.Event;
 	import sg.camo.events.SelectionEvent;
-	import sg.camo.ancestor.AncestorListener;
 	
 	/**
 	* Hooks up a DisplayObject (which is usually a Sprite container) to listen for GDisplayNotifications.SELECT
@@ -50,6 +49,7 @@
 		 */
 		protected function selectionHandler (e:Event):void {
 			e.stopPropagation();
+			
 			 doSelection (e.target) 		
 		}
 		
@@ -63,13 +63,13 @@
 				trace("SelectionBehaviour activate() halt. targ as DisplayObject is null!");
 				return;
 			}
-			AncestorListener.addEventListenerOf(_disp, GDisplayNotifications.SELECT, selectionHandler, 1);
+			_disp.addEventListener(GDisplayNotifications.SELECT, selectionHandler, false, 1, true);
 			//_disp.addEventListener (GDisplayNotifications.SELECT, selectionHandler, false, 1, true);
 		}
 		
 		public function destroy():void {
 			if (_disp != null) {
-				AncestorListener.removeEventListenerOf(_disp, GDisplayNotifications.SELECT, selectionHandler);
+				_disp.removeEventListener( GDisplayNotifications.SELECT, selectionHandler);
 				//_disp.removeEventListener(GDisplayNotifications.SELECT, selectionHandler);
 				_disp = null;
 			}
@@ -123,7 +123,7 @@
 			
 			var sel:ISelectable = targ as ISelectable;
 			if (sel != null) sel.selected = true
-			else trace ("Warning: SelectionBehaviour doSelection();  targ isn't ISelectable");
+			//else trace ("Warning: SelectionBehaviour doSelection();  targ isn't ISelectable");
 			_curSelected = targ as IEventDispatcher;
 			_curSelected.dispatchEvent( new Event(GDisplayNotifications.SELECTED) );
 			dispatchSelection(targ);

@@ -1,5 +1,6 @@
 ﻿package sg.camogxml.render
 {
+	import camo.core.display.IDisplay;
 	import camo.core.property.IPropertySheet;
 	import flash.display.DisplayObjectContainer;
 	import flash.display.DisplayObject;
@@ -7,6 +8,8 @@
 	import flash.utils.Dictionary;
 	import sg.camo.interfaces.IDefinitionGetter;
 	import sg.camo.interfaces.IPropertyApplier;
+	import sg.camo.interfaces.IPseudoBehaviour;
+	import sg.camogxml.api.IDTypedStack;
 	
 	import flash.xml.XMLDocument;
 	import flash.xml.XMLNode;
@@ -24,7 +27,6 @@
 	import sg.camo.interfaces.IDisplayRender;
 
 	import sg.camogxml.api.IGXMLRender;
-
 
 	/**
 	* A basic one-time(render-once) DisplayObjectContainer/DisplayObject renderer in DOM-based XML.
@@ -45,40 +47,49 @@
 		protected var bindAttribute:Function = dummyBinding;
 		protected var bindText:Function = dummyBinding;
 		
+		
+		// Required injectable properties (method/constructor supplied)
 		public var dispPropApplier:IPropertyApplier;
 		public var behPropApplier:IPropertyApplier;
 		public var textPropApplier:IPropertyApplier;
-		
+		public var attribPropApplier:IPropertyApplier;
 		
 		// Required (constructor supplied)
 		public var stylesheet:ISelectorSource;
 		public var behaviours:IBehaviouralBase;
 		public var definitionGetter:IDefinitionGetter;
 				
-		// Required (for inline stylesheet support)
+		// Required (for inline stylesheet support. This must be a IPropertyApplier instance)
+		[Inject(name="inlineSheet")]
 		public var inlineStyleSheetClass:Class;
 		
 		// Optional Public Settings
 		public static var DEFAULT_COMPRESS_CSS:Boolean = true;
 		public var compressInlineCSS:Boolean;
 		
-		// rarely injected (constructor initialised by convention.)
+		// rarely injected (constructor initialised by convention based on global stylesheet/definitions)
 		public var defaultClass:Class;
 		public var defaultTextClass:Class;
 		public var defaultTextFieldProps:Object;
+		public var defaultPseudoBehaviours:Object;
 
 		// Flags
 		protected var _curProps:Object;
 		protected var _curPropsArr:Array;
+		protected var _curInlineAttributes:Object;
 		protected var _parsed:Boolean = false;
 		protected var _xmlCache:XML;
 		
+		/**
+		 * If stacking id is supplied, you can stack inline stylesheet selector over
+		 * existing base stylesheet dependency if base stylesheet dependency is an IDTypedStack. Otherwise,
+		 * a fresh clone of the IDTypedStack stylesheet is created and combined with the inline stylesheet. THis is usually
+		 * used under a site framework like Gaia Flash Framework.
+		 */
+		public var stackingId:String;
 		
-		// NodeClassSpawner must create throwaway.
-		// CGGconfig edit from constructor to setter for inline stylesheet
-		
-		
-		public function GXMLRender(definitionGetter:IDefinitionGetter, behaviours:IBehaviouralBase, stylesheet:ISelectorSource, propApplier:IPropertyApplier, textPropApplier:IPropertyApplier=null) 
+	
+		public function GXMLRender(definitionGetter:IDefinitionGetter, behaviours:IBehaviouralBase, stylesheet:ISelectorSource, propApplier:IPropertyApplier, textPropApplier:IPropertyApplier) 
 		{
 			super();
 	
@@ -93,56 +104,133 @@
 			defaultClass = defaultClass || definitionGetter.getDefinition("DefaultNode") as Class;
 			defaultTextClass = defaultTextClass || definitionGetter.getDefinition("DefaultTextNode") as Class;
 			defaultTextFieldProps = defaultTextFieldProps || stylesheet.getSelector("TextField") || { };
+			defaultPseudoBehaviours = defaultPseudoBehaviours || stylesheet.getSelector("PseudoBehaviours") || { };
+			
 		
 			this.dispPropApplier = propApplier;
 			this.behPropApplier = propApplier;
+			this.attribPropApplier = propApplier;
 			this.textPropApplier = textPropApplier || propApplier;
+			
 			
 			ignoreWhite = true;
 		}
 		
-		[PostConstruct(name = 'gxml.display', name = 'gxml.behaviour', name = 'gxml.text')]
-		public function setCustomPropAppliers(dispPropApplier:IPropertyApplier=null,behPropApplier:IPropertyApplier=null,textPropApplier:IPropertyApplier=null):void {
+		[PostConstruct(name='gxml.display', name='gxml.behaviour', name='gxml.text', name='gxml.attribute')]
+		public function setCustomPropAppliers(dispPropApplier:IPropertyApplier=null,behPropApplier:IPropertyApplier=null,textPropApplier:IPropertyApplier=null,attributePropApplier:IPropertyApplier=null):void {
 			if (dispPropApplier) this.dispPropApplier = dispPropApplier;
 			if (behPropApplier)  this.behPropApplier  = behPropApplier;
 			if (textPropApplier) this.textPropApplier = textPropApplier;
-		}
-		
-		// -- Bindings
-		
-		protected function myBinding(str:String):* {
+			if (attributePropApplier) this.attribPropApplier = attributePropApplier;
 			
 		}
+		
+		[Inject(name='gxml.attribute')]
+		public function setAttribPropApplier(val:IPropertyApplier=null):void {
+			if (val) this.attribPropApplier = val;
+			
+		}
+		
+
+		
 	
 		/**
 		 * Sets string binding method to process inline attribute values in nodes. Inline attribute values are passed to the 
 		 * rendered node instance as additional properties for the property selector.<br/><br/>
 		 * The function must accept a string and return a string.
 		 */
-		public function set attributeBinding(func:Function):void {
-			bindAttribute = func;
+		[Inject(name="gxml")]
+		public function setAttributeBinding(func:Function=null):void {
+			bindAttribute = func || dummyBinding;
+		}
+		public function get attributeBinding():Function {
+			return bindAttribute;
 		}
 		/**
 		 * Sets string binding method to process text values in text nodes.<br/><br/>
 		 * The function must accept a string and return a string.
 		 */
-		public function set textBinding(func:Function):void {
-			bindText = func;
+		[Inject(name="gxml")]
+		public function setTextBinding(func:Function=null):void {
+			bindText = func || dummyBinding;
+		}
+		/**
+		 * Allows re-setting of optional inline text binding
+		 */
+		[PostConstruct(name = "gxml.textBinding")]
+		public function setTextBinding2(func:Function = null):void {
+			bindText = func || dummyBinding;
 		}
 		
 		private final function dummyBinding(val:String):String {
 			return val;
 		}
+		
+
 
 		
-		protected function getBehaviour(behName:String):IBehaviour {
-			var retBeh:IBehaviour = behaviours.getBehaviour(behName);
-			if (_curProps != null) {	
-				// apply curProps to behaviour
-				behPropApplier.applyProperties(retBeh, _curProps);
+		protected function getBehaviour(behName:String, node:XMLNode):IBehaviour {
+			var retBeh:IBehaviour;
+			var ider:String 
+			var pseudoIndex:int = behName.indexOf("!");
+			if (pseudoIndex > -1) {
+				var pseudoBehNamespace:String = behName.substr(pseudoIndex);  // with exclaimation mark
+				var pseudoState:String = pseudoIndex > 0 ?  behName.substr(0, pseudoIndex) : " ";
+				var findBeh:String = defaultPseudoBehaviours[behName] || defaultPseudoBehaviours[pseudoBehNamespace];
+				retBeh =  behaviours.getBehaviour(findBeh);
+				
+	
+			
+				applyBehaviourProperties(retBeh, behName, node, pseudoBehNamespace, pseudoState);
+				return retBeh;
 			}
+			retBeh = behaviours.getBehaviour(behName);
+
+
+			applyBehaviourProperties(retBeh, behName, node);
+			
 			return retBeh;
 		}
+		
+		protected function applyBehaviourProperties(beh:IBehaviour, behLookupName:String, node:XMLNode, pseudoNamespace:String=null, pseudoState:String=null):Object {
+			var behStyleArr:Array =  pseudoNamespace != null ? [">"+beh.behaviourName, ">"+behLookupName, pseudoNamespace, ">"+behLookupName] : beh.behaviourName != behLookupName ? [">"+beh.behaviourName, ">"+behLookupName] : null;
+			var totalArr:Array;
+			var len:int = _curPropsArr.length;
+			
+			var i:int = 0;
+			if (behStyleArr == null) {
+
+				totalArr = new Array(len + 1);
+				
+				totalArr[0] = ">"+beh.behaviourName;
+				i = 0;
+				while ( i < len) {		// do single loop
+					totalArr[i+1] =  _curPropsArr[i] + ">" + behLookupName;
+					i++;
+				}
+			}
+			else {  
+				
+				totalArr = behStyleArr;
+				var ulen:int = behStyleArr.length;
+				while (i < len) {		// do heavier nested loop
+					var u:int = 0;
+					while ( u < ulen) {
+						totalArr.push( _curPropsArr[i] +  behStyleArr[u] );
+						u++;
+					}
+					i++;
+				}
+				
+			}
+
+			var props:Object = stylesheet.getSelector.apply(null, totalArr);
+			if (pseudoState) props.pseudoState = pseudoState;
+			behPropApplier.applyProperties(beh, props)
+			return props;
+		}
+		
+
 		
 		// -- IGXML
 		
@@ -214,30 +302,37 @@
 			var body:XMLList = xml.body;
 			if (body.length() < 1) return null;
 			var bodyList:XMLList = body[0].*;
-			return bodyList.length() > 0 ? bodyList[0] : null;
+			return bodyList.length() > 0 ? XML(body) : null;
 		}
 		
 		/** @private*/
 		protected function considerInlineStylesheet(xml:XML):Boolean {
 			if (inlineStyleSheetClass != null && xml.stylesheet.length()> 0) {
 				
-				var inlineCSS:String = xml.body.length() > 0 ? xml.stylesheet[0] : null;
-				if (inlineCSS) {
+				var inlineCSS:String = xml.body.length() > 0 ? xml.stylesheet[0] || " " : null;
+				if (inlineCSS ) {
 					var propSheet:IPropertySheet = new inlineStyleSheetClass() as IPropertySheet;
 					if (propSheet != null) {
 						propSheet.parseCSS(inlineCSS, compressInlineCSS);
 						if (stylesheet == null) {
 							stylesheet = propSheet;
 						}
-						else {  // merge into current inline property sheet.	
-							var selNames:Array = stylesheet.selectorNames;
-				
-							for each(var selName :String in selNames) {
-								// don't overwrite if property sheeet already has selector
-								//if ( !propSheet.hasSelector(selName) ) {
-								//	trace("Adding selector:", selName, stylesheet.getSelector(selName));
-									propSheet.newSelector( selName, stylesheet.findSelector(selName) );
-								//}
+						else {  // perform merge with current stylesheet
+							var selNames:Array = stylesheet.selectorNames;  
+							if ( (stylesheet is IDTypedStack)  ) { // merge using IDTypedStack interface
+								if (stackingId != null) (stylesheet as IDTypedStack).addItemById(propSheet, stackingId)
+								else {
+									stylesheet = (stylesheet as IDTypedStack).cloneStack()  as ISelectorSource;
+									(stylesheet as IDTypedStack).addItemById(propSheet, "");
+								}
+								return true;
+							}
+							else if (stylesheet!=null) {
+								for each(var selName :String in selNames) {		// todo: non-destructive merge
+									// consider don't overwrite if property sheeet already has selector, but merge ?
+										propSheet.newSelector( selName, stylesheet.findSelector(selName) ); // overwrite directly for now..
+									//}
+								}
 							}
 							stylesheet = propSheet;
 						}
@@ -282,6 +377,7 @@
 			
 			var node:XMLNode = firstChild;
 			
+			
 			if (node == null) {
 				trace("GXMLRender: parseXML() halted. No first child node from root!");
 				
@@ -289,6 +385,7 @@
 			}
 			
 			_rootNode = node.firstChild;
+			
 			
 			_renderId = node.attributes.renderId || node.nodeName;
 			
@@ -298,6 +395,7 @@
 			
 			_rendered = renderNode(node);
 			
+	
 			
 	
 			if (_rendered == null) {
@@ -306,10 +404,15 @@
 				return;
 			}
 			
-			if (_rendered is DisplayObjectContainer && !isTerminalNode(node) ) createChild(node.firstChild, _rendered as DisplayObjectContainer)  // recurse and create children
+			if (_rendered is DisplayObjectContainer && !isTerminalNode(node) ) {
+				createChild(node.firstChild, _rendered as DisplayObjectContainer)  // recurse and create children
+			}
 			
 		
 			_curProps = null;
+			
+			
+			
 		}
 		
 
@@ -351,20 +454,16 @@
 			}
 			var disp:DisplayObject = renderedItem as DisplayObject;
 			
-		//	if (node.nodeName === "div") trace("SDS"+renderedItem);
-			
 			if (disp == null) {
 				
 				renderUntyped(renderedItem, node, props);
 				return null;
 			}
 			
+			injectDisplayProps(disp, props, node);
 			
 			isTxtNode = isTextPropInjectable(renderedItem);
 			if (isTxtNode) injectTextFieldProps(disp, props, node)
-			
-			
-			injectDisplayProps(disp, props, node);
 			
 			injectDisplayBehaviours(disp, props, node);
 			
@@ -379,7 +478,7 @@
 		}
 		
 		protected function getRenderedItem(node:XMLNode, isTxtNode:Boolean):* {
-			// TODO: parse different types of definitions
+
 			return definitionGetter.hasDefinition(node.nodeName) ? new  (definitionGetter.getDefinition(node.nodeName) as Class)() : isTxtNode ? new defaultTextClass() : new defaultClass();
 		}
 		
@@ -388,7 +487,8 @@
 		
 		protected function injectDisplayBehaviours(disp:DisplayObject, props:Object, node:XMLNode):Array {
 			var behArray:Array = null;
-
+			var attrib:Object = node.attributes;
+	
 			 if (props.behaviours) {	
 				behArray =  props.behaviours.split(" ");
 				var beh:IBehaviour;
@@ -398,9 +498,14 @@
 					var behBase:IBehaviouralBase = disp as IBehaviouralBase;
 					while (i < len) {
 						
-						beh = getBehaviour( behArray[i] );
+						beh = getBehaviour( behArray[i], node );
+							
+						if (beh is IPseudoBehaviour) {
+							behArray[i] = beh.behaviourName;
+						}
 						
-						//behArray[i] = beh;
+						
+						
 						behBase.addBehaviour( beh);
 						i++;
 					}
@@ -408,39 +513,57 @@
 				else  {		// force-add behaviours over DisplayObject and activate them automatically
 					
 					while (i < len) {	
-						beh = getBehaviour( behArray[i] );
-						beh.activate(disp);
+						beh = getBehaviour( behArray[i], node );
 						
+						if (beh is IPseudoBehaviour) {
+							behArray[i] = beh.behaviourName;
+						}
+						
+						beh.activate(disp);
 						_behCache[beh] = true;
 						i++;
 					}
 					
 					
 				}
-			}
-			
+				
+				
+			}	
 			return behArray;
 		}
-		
 		
 		
 		protected function findTextField(obj:Object):TextField {
 			return obj is ITextField ? (obj as ITextField).textField :  obj as TextField;
 		}
-		protected function injectTextFieldProps(disp:DisplayObject, props:Object, node:XMLNode):void {
+		protected function injectTextFieldProps(disp:DisplayObject, props:Object, node:XMLNode):Object {
+			var props:Object;
 			var txtField:TextField = findTextField(disp);
-			if (txtField != null) {
-				textPropApplier.applyProperties( txtField, defaultTextFieldProps  );
+			if (txtField != null) { 
+				var i:int = 0;
+				var len:int = _curPropsArr.length;
+				var totalArr:Array = new Array(len + 1);
+				
+				totalArr[0] = "TextField";
+				while ( i < len) {		
+					totalArr[i + 1] =  _curPropsArr[i] + ">textField";
+					i++;
+				}
+				props = stylesheet.getSelector.apply(null, totalArr);
+				textPropApplier.applyProperties( txtField, props );
 			}
 	
 			var tarValue:String = node.firstChild ? node.firstChild.nodeValue : null;
-			if (tarValue == null) return; 
+			if (tarValue == null) return props; 
 			if (disp is IText) (disp as IText).text = bindText(tarValue)
 			else if (txtField != null) txtField.text = bindText(tarValue);
+			
+			return props;
 		}
 		
 		protected function injectDisplayProps(disp:DisplayObject, props:Object, node:XMLNode):void {
 			dispPropApplier.applyProperties( disp, props );
+			attribPropApplier.applyProperties(disp, _curInlineAttributes);
 		}
 		
 		// -- DOM Helpers
@@ -459,13 +582,27 @@
 			var arr:Array = sels.split (",");
 		
 			var propSel:Object = stylesheet.getSelector.apply(null, arr);
-			for (var i:String in attrib) { // Merge with inline attributes
-				propSel[i] = bindAttribute(attrib[i]);
+			
+			var obj:Object = { };
+			_curInlineAttributes = obj;
+			var tarObj:Object;
+			
+			if (attrib.behaviours) {
+				propSel.behaviours = attrib.behaviours;
+				delete attrib.behaviours;
 			}
-	
+			
+			for (var i:String in attrib) { 
+				var str:String = attrib[i];
+				obj[i] = bindAttribute(str);
+			}
+		
+			_curPropsArr = arr;
 			
 			return propSel;
 		}
+		
+		
 		
 		protected function isTextNode (node:XMLNode):Boolean {
 			return node.firstChild!=null ?  node.firstChild.nodeType === XMLNodeType.TEXT_NODE : false;
@@ -478,20 +615,23 @@
 		 */
 		public function destroy():void {
 			destroyRecurse(false);
-			
 		}
 		
 		public function destroyRecurse(boo:Boolean = false):void {
 			for (var i:* in _behCache) {
 				i.destroy();
 			}
+			
+			if (_rootNode == null) return;
+						
 			/*if (boo && _rendered is IRecursableDestroyable) {
 				(_rendered as IRecursableDestroyable).destroyRecurse(boo);
 			}
 			else*/
-			destroyDisplay(_rendered, firstChild.attributes);
-			destroyAllFromNode(firstChild);
-			delete firstChild.attributes.rendered;
+			destroyDisplay(_rendered, _rootNode.attributes);
+			destroyAllFromNode(_rootNode, _rendered as DisplayObjectContainer);
+			
+			delete _rootNode.attributes.rendered;
 			idMap = null;
 			_rendered = null;
 			_xmlCache = null;
@@ -503,7 +643,7 @@
 			if (disp is IDestroyable) (disp as IDestroyable).destroy();
 		}
 		
-		protected function destroyAllFromNode(baseNode:XMLNode):void {	
+		protected function destroyAllFromNode(baseNode:XMLNode, dispCont:DisplayObjectContainer=null):void {	
 			var node:XMLNode = baseNode.firstChild;
 			var nextNode:XMLNode;
 			var attrib:Object;
@@ -514,8 +654,14 @@
 				if (attrib.rendered) { 
 					//if (attrib.rendered is IRecursableDestroyable) (attrib.rendered as IRecursableDestroyable).destroyRecurse(false)
 					//else 
-					destroyDisplay(attrib.rendered, attrib);
-					if ( !isTerminalNode (node) ) destroyAllFromNode(node);
+					var disp:DisplayObject = attrib.rendered;
+					
+					// this should consider exceptions if child was unparented
+					dispCont.removeChild(disp); 
+					
+					destroyDisplay(disp, attrib);
+					
+					if ( !isTerminalNode (node) ) destroyAllFromNode(node, disp as DisplayObjectContainer);
 					delete attrib.rendered;
 				}
 				node = nextNode;

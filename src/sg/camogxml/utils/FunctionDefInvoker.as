@@ -27,7 +27,7 @@
 		 * 				occured while vaidating the method and it's parameters to inject
 		 */
 		public static function invoke(def:IFunctionDef, params:Array, overwriteCallMethod:Function=null ):* {
-			if (def == null) return null;
+		
 			var defParams:Array = def.getParams();
 			var requiredLen:int = def.requiredLength;
 			var methodToCall:Function = overwriteCallMethod || def.method;
@@ -37,7 +37,7 @@
 			var isValid:Boolean = def.overload ? params.length >= requiredLen : params.length >= requiredLen && params.length <= defParams.length;
 			if (!isValid) {
 				throw new Error("FunctionDefInvoker.invoke() Invalid no. of parameters supplied:[", params+"]" + ", ["+defParams+"]"+ ", "+ params.length+"/"+requiredLen);
-				return null;
+			
 			}
 			var typeHelper:ITypeHelper = GXMLGlobals.typeHelper;
 			var len:int = params.length;
@@ -46,6 +46,7 @@
 				var value:* = params[i];
 				arr[i] = value is String ? typeHelper.getType(value, defParams[i].toLowerCase()) : value;
 			}
+		
 			var ret:* = methodToCall.apply(null, arr);
 			return ret;
 		}

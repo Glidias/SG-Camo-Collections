@@ -22,28 +22,16 @@
 	public class GXMLCloneRender extends GXMLRender implements IRenderFactory
 	{
 		
+		protected var _isCloned:Boolean = false;
+		
 		public function GXMLCloneRender(definitionGetter:IDefinitionGetter, behaviours:IBehaviouralBase, stylesheet:ISelectorSource, propApplier:IPropertyApplier, textPropApplier:IPropertyApplier)
 		{
 			super(definitionGetter, behaviours, stylesheet, propApplier, textPropApplier );
 		}
-
-		override protected function getBehaviour(behName:String):IBehaviour {
-			var retBeh:IBehaviour = behaviours.getBehaviour(behName);	
-			
-			if (_curProps != null) {	  
-				if (_curBehNode != null) { 
-					var attrib:Object = _curBehNode.attributes;
-			
-					var arr:Array = attrib.behaviourProps as Array || (attrib.behaviourProps = []);
-					
-					arr.push(_curProps);
 		
-				}
-				else  behPropApplier.applyProperties(retBeh, _curProps);
-			}
-			return retBeh;
+		internal function set isCloned(boo:Boolean):void {
+			_isCloned = boo;
 		}
-		
 	
 		protected var _curClone:GXMLCloneRender;
 		
@@ -53,13 +41,18 @@
 		
 		protected function cloneRender():GXMLCloneRender {
 			var clone:GXMLCloneRender = cloneInstance;
+			
 			clone.dispPropApplier = dispPropApplier;
 			clone.behPropApplier = behPropApplier;
 			clone.textPropApplier = textPropApplier;
+		
+			clone.isCloned = true;
+		
 			_curClone = clone;
 			clone.idMap = { }; 
 			var clonedRoot:XMLNode = _rootNode.cloneNode(true);
 			var disp:DisplayObject = reRenderNode(clonedRoot);
+
 			if ( disp is DisplayObjectContainer && !isTerminalNode(clonedRoot) ) createCloneChild(clonedRoot.firstChild, disp as DisplayObjectContainer);
 			clone.firstChild = clonedRoot;
 			clone.rendered = disp;
@@ -72,6 +65,9 @@
 			_rendered = val;
 		}
 		
+		override public function get rendered():DisplayObject {
+			return _isCloned ? super.rendered :  _rootNode ?  createRender().rendered : null;
+		}
 		
 		// -- IRenderFactory
 		public function createRender():IDisplayRender {
@@ -97,6 +93,17 @@
 		}
 		
 		
+		override protected function applyBehaviourProperties(beh:IBehaviour, behLookupName:String, node:XMLNode, pseudoNamespace:String=null, pseudoState:String=null):Object {
+			var behProps:Object = super.applyBehaviourProperties(beh, behLookupName, node, pseudoNamespace, pseudoState);
+			var attrib:Object = node.attributes;
+			var arr:Array = attrib.behaviourProps as Array || (attrib.behaviourProps = []);		
+			
+			
+			arr.push(behProps);
+			
+			return behProps;
+		}
+		
 		
 		protected function reRenderNode(node:XMLNode):DisplayObject {
 			
@@ -110,16 +117,20 @@
 			var obj:Object = new attrib.renderedClass();//new (definitionGetter.getDefinition(node.nodeName))();
 			
 			var i:String;
-		
-			var txtField:TextField = findTextField(obj);
-			textPropApplier.applyProperties( txtField, attrib.cachedTextProps  );
-			
-			if (node.firstChild && node.firstChild.nodeValue) {
-				txtField.text = node.firstChild.nodeValue;
-			}
-			 
 			
 			dispPropApplier.applyProperties( obj, attrib.cachedDisplayProps )
+			attribPropApplier.applyProperties( obj, attrib.cachedAttributes);
+			
+			
+			if (attrib.cachedTextProps) 	{
+				var txtField:TextField = findTextField(obj);
+				textPropApplier.applyProperties( txtField, attrib.cachedTextProps  );
+				if (node.firstChild && node.firstChild.nodeValue) {
+					txtField.text = node.firstChild.nodeValue;
+				}
+			}
+			
+
 			
 			
 			// apply cached behaviours and props
@@ -138,6 +149,7 @@
 					else  {
 						beh.activate(obj);
 						_behCache[beh] = true;
+						
 					}
 					count++;
 				}
@@ -159,26 +171,31 @@
 		
 		// Overwritten helpers
 		
-		protected var _curBehNode:XMLNode;
-		
+
 		override protected function injectDisplayBehaviours(disp:DisplayObject, props:Object, node:XMLNode):Array {
-			_curBehNode = node;
+	
 			var arr:Array = super.injectDisplayBehaviours(disp, props, node);
 			if (arr!=null) node.attributes.behaviours = arr;
-			_curBehNode = null;
 			return arr;
 		}
 
 		
-		override protected function injectTextFieldProps(disp:DisplayObject, props:Object, node:XMLNode):void {
-			super.injectTextFieldProps(disp, props, node);
-			node.attributes.cachedTextProps = props;
+		override protected function injectTextFieldProps(disp:DisplayObject, props:Object, node:XMLNode):Object {
+			var props:Object = super.injectTextFieldProps(disp, props, node);
+			if (props) node.attributes.cachedTextProps = props;
+			return props;
 			
 		}
 		
 		override protected function injectDisplayProps(disp:DisplayObject, props:Object, node:XMLNode):void {
 			super.injectDisplayProps(disp, props, node);
 			node.attributes.cachedDisplayProps = props;
+			node.attributes.cachedAttributes = _curInlineAttributes;
+			for (var i:String in _curInlineAttributes) {
+				node.attributes.cachedDisplayProps[i] = _curInlineAttributes[i]
+				
+			}
+		
 			node.attributes.renderedClass = Object(disp).constructor;
 		}
 		
@@ -190,7 +207,6 @@
 		 */
 		override public function destroyRecurse(boo:Boolean=false):void {
 			super.destroyRecurse(boo);
-			_curBehNode = null;
 		}
 		
 		

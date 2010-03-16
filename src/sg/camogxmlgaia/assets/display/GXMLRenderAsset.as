@@ -9,7 +9,7 @@
 	import sg.camogxmlgaia.api.IDisplayRenderAsset;
 	import sg.camogxmlgaia.api.IGXMLAsset;
 	import sg.camogxmlgaia.api.INodeClassAsset;
-	import sg.camogxmlgaia.api.INodeClassSpawner;
+	import sg.camo.interfaces.INodeClassSpawner;
 	/**
 	 * Parses GXMLRender under the CGG framework.
 	 * 
@@ -55,6 +55,8 @@
 			
 			if (_gxmlRender is IRecursableDestroyable) (_gxmlRender as IRecursableDestroyable).destroyRecurse(true)
 			else if (_gxmlRender is IDestroyable) (_gxmlRender as IDestroyable).destroy();
+			
+			_gxmlRender = null;
 		}
 	
 		

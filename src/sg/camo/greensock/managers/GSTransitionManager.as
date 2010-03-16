@@ -34,7 +34,6 @@
 				var module:ITransitionModule = i;
 				var inOutTiming:InOutTiming = _modules[i];
 				var payload:* = module.transitionInPayload;
-				trace(inOutTiming.timeIn, payload);
 				if (payload) _mainTimeline.insert( payload, inOutTiming.timeIn);
 			}
 			if (_mainTimeline.totalTime == 0 ) {
@@ -51,11 +50,11 @@
 				var module:ITransitionModule = i;
 				var inOutTiming:InOutTiming = _modules[i];
 				var payload:* = module.transitionOutPayload;
-				if (payload) _mainTimeline.insert( payload, inOutTiming.timeOut);
+				if (payload) {
+					_mainTimeline.insert( payload, inOutTiming.timeOut);
+				}
 			}
-			if (_mainTimeline.totalTime == 0 ) {
-				//trace("Total time 0:"+_transitionOutComplete);
-				//_mainTimeline.complete();
+			if (_mainTimeline.totalDuration == 0 ) {
 				if (_transitionOutComplete!=null) _transitionOutComplete();
 				return;
 			}
@@ -68,7 +67,7 @@
 		public function addTransitionModule(module:ITransitionModule, timeIn:Number = 0, timeOut:Number = 0):void {
 			// note: Code doesn't check if module type is a TweenCore. It assumes it's a TweenCore.
 			_modules[module] = new InOutTiming(timeIn, timeOut);
-			trace(timeIn, timeOut);
+
 		}
 
 		

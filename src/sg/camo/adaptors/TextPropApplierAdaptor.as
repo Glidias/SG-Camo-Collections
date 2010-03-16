@@ -35,9 +35,11 @@
 				if (txtFormat.hasOwnProperty (prop)) {
 					var val:* = properties[prop];
 					val = (val === "true" || val === "false") ? val==="true" : val;
-					target[prop] =  val;
+					txtFormat[prop] =  val;
 				}
 			}
+			
+		
 			txtField.defaultTextFormat = txtFormat;	
 			txtField.setTextFormat(txtField.defaultTextFormat);
 			

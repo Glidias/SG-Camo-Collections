@@ -13,6 +13,8 @@
 	import sg.camogxmlgaia.api.*;
 	import sg.camogxml.api.ISEORenderer;
 	
+	import sg.camo.interfaces.INodeClassSpawner;
+	import sg.camo.interfaces.INodeClassSpawnerManager;
 
 
 	/**

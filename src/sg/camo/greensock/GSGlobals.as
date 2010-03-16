@@ -17,6 +17,11 @@
 		private static var _typeHelper:ITypeHelper;
 		private static var _propertyMapCache:IPropertyMapCache;
 		
+		// optional dependency to set (your prefered tween classes). This would overwrite
+		// every other setting.
+		public static var TWEEN_CLASS:Class;
+		public static var TIMELINE_CLASS:Class;
+		
 		/**
 		 * Constructor to supply static dependencies through constructor injection.
 		 * @param	typeHelper

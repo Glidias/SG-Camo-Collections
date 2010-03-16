@@ -68,6 +68,8 @@ package camo.core.display
 	 * 
 	 * @author glenn  (changes commented with text)
 	 * 
+	 * 
+	 * 
 	 */
 	public class AbstractDisplay extends Sprite implements IDisplay, IDisplayBase, IRecursableDestroyable, IAncestorSprite
 	{
@@ -92,8 +94,7 @@ package camo.core.display
 		
 		//protected var invalidated : Dictionary = new Dictionary( );  // <- not being used in this version
 		
-		/** @private  */
-		protected var registeredListeners:Dictionary = new Dictionary();
+
 		/** @private Flag to determine */
 		protected var _destroyChildren:Boolean = SGCamoSettings.DESTROY_CHILDREN;
 		
@@ -159,6 +160,12 @@ package camo.core.display
 		}
 		public function get $height():Number {
 			return super.height;
+		}
+		public function set $width(val:Number):void {
+			super.width = val;
+		}
+		public function set $height(val:Number):void {
+			super.height = val;
 		}
 
 
@@ -240,15 +247,15 @@ package camo.core.display
 		// Exclusive add/remove stage listener functions not tied to handlers
 		protected function addStageListeners() : void
 		{
-			$addEventListener( Event.ADDED_TO_STAGE, onAddedToStage, false, 0, true );
-			$addEventListener( Event.REMOVED_FROM_STAGE, onRemovedFromStage, false, 0, true );
+			addEventListener( Event.ADDED_TO_STAGE, onAddedToStage, false, 0, true );
+			addEventListener( Event.REMOVED_FROM_STAGE, onRemovedFromStage, false, 0, true );
 		}
 
 
 		protected function removeStageListeners() : void
 		{
-			$removeEventListener( Event.REMOVED_FROM_STAGE, onRemovedFromStage );
-			$removeEventListener( Event.ADDED_TO_STAGE, onAddedToStage );
+			removeEventListener( Event.REMOVED_FROM_STAGE, onRemovedFromStage );
+			removeEventListener( Event.ADDED_TO_STAGE, onAddedToStage );
 		}
 
 
@@ -357,8 +364,7 @@ package camo.core.display
 			destroyRecurse(_destroyChildren);
 		}
 		
-		public function destroyRecurse(recurse:Boolean = true):void {
-			destroyEventListeners( );   
+		public function destroyRecurse(recurse:Boolean = true):void { 
 			removeStageListeners();
 			if (stage!=null) stage.removeEventListener( Event.RENDER, onRender);
 			if (recurse) destroyChildren();
@@ -379,41 +385,9 @@ package camo.core.display
 			}	
 		}
 	
-		public function clearEventListeners() : void
-		{
-			var type : String;
-			
-			var dict:Dictionary;
-			
-			for( type in registeredListeners )
-			{
-				dict = registeredListeners[type];
-				
-				for( var listener:Object in dict )
-				{
-					removeEventListener( type, listener as Function, dict[listener] );
-				}
-			}
-			registeredListeners = new Dictionary();
-		}
 		
-		public function destroyEventListeners():void {
-			if (registeredListeners == null) return;
-			var type : String;
-			
-			var dict:Dictionary;
-			
-			for( type in registeredListeners )
-			{
-				dict = registeredListeners[type];
-				
-				for( var listener:Object in dict )
-				{
-					removeEventListener( type, listener as Function, dict[listener] );
-				}
-			}
-			registeredListeners = null;
-		}
+		
+		
 
 		/**
 		 * @private
@@ -424,32 +398,16 @@ package camo.core.display
 		}
 
 
-		// borrowed listener registeration from latest camo, rather do it inline
-		
-		override public function addEventListener(type : String, listener : Function, useCapture : Boolean = false, priority : int = 0, useWeakReference : Boolean = false) : void
-		{
-			$addEventListener( type, listener, useCapture, priority, useWeakReference );
-			if ( !registeredListeners[type] ) registeredListeners[type] = new Dictionary(); 
-			if( !registeredListeners[type][listener] ) registeredListeners[type][listener] = useCapture;  // casting  listener as Function required?  "listener as Function"
-		}
-		
 
-	
+
+		// TO Depreciate IAncestorListener methods..
+		
+		
 		public function $addEventListener(type : String, listener : Function, useCapture : Boolean = false, priority : int = 0, useWeakReference : Boolean = false) : void
 		{
 			super.addEventListener( type, listener, useCapture, priority, useWeakReference );
 		}
 
-
-		override public function removeEventListener(type : String, listener : Function, useCapture : Boolean = false) : void
-		{
-			$removeEventListener( type, listener, useCapture );
-			
-			if (registeredListeners[type]) {
-				registeredListeners[type][listener];
-				delete registeredListeners[type];
-			}
-		}
 
 	
 		public function $removeEventListener(type : String, listener : Function, useCapture : Boolean = false) : void
@@ -461,7 +419,8 @@ package camo.core.display
 		override public function addChild(child : DisplayObject) : DisplayObject
 		{
 			var retChild:DisplayObject = display.addChild( child );
-			dispatchEvent( new CamoChildEvent( CamoChildEvent.ADD_CHILD, child ) );
+			
+			 dispatchEvent( new CamoChildEvent( CamoChildEvent.ADD_CHILD, child ) );
 			_bubblingDraw = true;
 			invalidate( );
 			return retChild;

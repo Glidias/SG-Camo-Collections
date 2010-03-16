@@ -42,6 +42,7 @@
 		 */
 		public function GSTransition(target:Object, tweenClass:Class= null, pluginVars:GSPluginVars=null) 
 		{
+			if (target == null) return;
 			_target = target;
 			_pluginVars = pluginVars;
 			_tweenClass = tweenClass || TweenLite;
@@ -102,7 +103,9 @@
 		protected function checkIsReversible(tw:TweenCore):Boolean {
 			if (tw==null || !reverseOnInterrupt) return false;
 			if (_curTween.totalTime > 0 && _curTween.totalTime < _curTween.totalDuration  ) {
-				tw.reverse();
+		
+				tw.reverse(false);
+				
 				return true;
 			}
 			return false;
@@ -161,7 +164,7 @@
 		// -- IDestroyable
 		
 		public function destroy():void {
-			
+			if (_target == null) return;
 			for (var i:String in _restoreVars) {
 				_target[i] = _restoreVars[i];
 			}

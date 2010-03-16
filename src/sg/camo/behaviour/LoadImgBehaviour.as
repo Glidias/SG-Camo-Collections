@@ -13,7 +13,6 @@
 	import flash.net.URLRequest;
 	import sg.camo.interfaces.IImg;
 	import sg.camo.interfaces.ISrc;
-	import sg.camo.ancestor.AncestorListener;
 	
 	/**
 	 * Allow loading of image through loader ISrc url request or direct IImg reference.
@@ -55,11 +54,11 @@
 			}
 
 			if (_targetContainer.stage) loadImage();
-			else AncestorListener.addEventListenerOf(_targetContainer, Event.ADDED_TO_STAGE, onAddedToStage);
+			else _targetContainer.addEventListener(Event.ADDED_TO_STAGE, onAddedToStage, false, 0, true);
 		}
 		
 		protected function onAddedToStage(e:Event):void {
-			AncestorListener.removeEventListenerOf(e.target as IEventDispatcher, Event.ADDED_TO_STAGE, onAddedToStage);
+			(e.target as IEventDispatcher).removeEventListener( Event.ADDED_TO_STAGE, onAddedToStage);
 			loadImage();
 		}
 		

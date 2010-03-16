@@ -18,7 +18,6 @@
 	import sg.camo.interfaces.IScrollProxy;
 	import sg.camo.interfaces.ITextField;
 	import sg.camo.scrollables.DefaultScrollProxy;
-	import sg.camo.ancestor.AncestorListener;
 	import sg.camo.scrollables.ScrollMask2Rect;
 	/**
 	 * Attempts to make any generic DisplayObject scrollable through various "guess" determinations. Also provides
@@ -166,7 +165,7 @@
 			var disp:DisplayObject = _disp;
 			_iDisplay = _disp as IDisplay;
 			
-			AncestorListener.addEventListenerOf(disp, CamoDisplayEvent.DRAW, drawHandler, -1);
+			disp.addEventListener(CamoDisplayEvent.DRAW, drawHandler,false, -1, true);
 		
 			
 			var dispCont:DisplayObjectContainer = targ as DisplayObjectContainer;
@@ -203,7 +202,7 @@
 				activateScrollBars();
 			}
 			else {
-				AncestorListener.addEventListenerOf(_disp, Event.ADDED_TO_STAGE, addedToStageScrollBars);
+				_disp.addEventListener(Event.ADDED_TO_STAGE, addedToStageScrollBars, false, 0, true);
 			}
 			
 		}
@@ -212,7 +211,7 @@
 		
 		public function destroy():void {
 			if (_iScroll != null) {
-				AncestorListener.removeEventListenerOf(_disp, Event.ADDED_TO_STAGE, addedToStageScrollBars);
+				_disp.removeEventListener(Event.ADDED_TO_STAGE, addedToStageScrollBars);
 				_iScroll.destroy();
 			}
 			if (scrollBarV != null) {
@@ -232,7 +231,7 @@
 		// -- ScrollableBehaviour
 		
 		protected function addedToStageScrollBars(e:Event):void {
-			AncestorListener.removeEventListenerOf(_disp, Event.ADDED_TO_STAGE, addedToStageScrollBars);
+			_disp.removeEventListener(Event.ADDED_TO_STAGE, addedToStageScrollBars);
 			
 			activateScrollBars();
 		}

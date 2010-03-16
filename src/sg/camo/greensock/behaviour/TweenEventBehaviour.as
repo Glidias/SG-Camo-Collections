@@ -7,20 +7,20 @@
 	import sg.camo.interfaces.IBehaviour;
 	import sg.camo.greensock.EasingMethods;
 	import flash.events.Event;
-	import sg.camo.ancestor.AncestorListener;
 	import sg.camo.greensock.CreateGSTweenVars;
+	import sg.camo.interfaces.IPseudoBehaviour;
 	
 	/**
 	 * A tween behaviour execution with initial starting values and destination values
 	 * along a linear reversible tween. Also allows setting of restore variables
 	 * when destroy() is being called. You need to set the 'eventTo' and 'eventReturn'
-	 * event types to determine what events trigger a tween to the "toVars" and "fromVars"
+	 * event types to determine what events trigger a tween to the "toVars" and "initVars"
 	 * respectively. Also provides flags for one shot tweens or immediately executing
 	 * the tween upon activation even if no event triggers are specified.
 	 * 
 	 * @author Glenn Ko
 	 */
-	public class TweenEventBehaviour implements IBehaviour
+	public class TweenEventBehaviour implements IPseudoBehaviour
 	{
 		
 		public static const NAME:String = "TweenEventBehaviour";
@@ -36,14 +36,18 @@
 		 */
 		public var dispatchDraw:Boolean = false;
 		
-		//public var toTimeScale:Number = 1;
-		//public var fromTimeScale:Number = -1;
-		
-		protected var _fromVars:Object;
-		public function set fromVars(vars:Object):void {
-			_fromVars = CreateGSTweenVars.createVarsFromObject(vars);
+		protected var _initVars:Object;
+		public function set initVars(vars:Object):void {
+			_initVars = CreateGSTweenVars.createVarsFromObject(vars);
 		}
+		
+		
 		protected var _toVars:Object;
+		protected var _initToVars:Object;
+		
+		public function set initToVars(vars:Object):void {
+			_initToVars = CreateGSTweenVars.createVarsFromObject(vars);
+		}
 		public function set toVars(vars:Object):void {
 			_toVars = CreateGSTweenVars.createVarsFromObject(vars);
 		}
@@ -55,9 +59,18 @@
 		}
 		public var restoreDuration:Number = 0;  // specify a number to perform a restore tween
 		
-		public var oneShot:Boolean = false;
+		public static const ONESHOT_NONE:int = 0 ;
+		public static const ONESHOT_ONCE:int = 1;
+		public static const ONESHOT_RECOVER:int = 2;
+		
+		public var oneShot:int = ONESHOT_NONE;
+		
 		public var renderNow:Boolean = false;
 		
+		// -- IPseudoState dummy
+		public function set pseudoState(str:String):void { 
+		
+		}
 		
 		// Event info and easing
 		public var eventTo:String;
@@ -87,43 +100,102 @@
 		
 		
 		public function activate(targ:*):void {
-			if (_fromVars == null || _toVars == null) {
+		/*	if (_initVars == null || _toVars == null) {
 				throw new Error("TweenEventBehaviour activate() failed! No from/to variables specified");
 				return;
-			}
-			new tweenClass(targ, .1, _fromVars ).complete();
-			_tweenCore = new tweenClass(targ, duration, _toVars );
-			_tweenCore.pause();
-			if (dispatchDraw) _tweenCore.vars.onUpdate = dispatchDrawBubble;
+			}*/
 			var evDisp:IEventDispatcher = targ as IEventDispatcher;
-			if (eventTo) AncestorListener.addEventListenerOf(evDisp, eventTo, tweenToHandler);
-			if (eventReturn) AncestorListener.addEventListenerOf(evDisp, eventReturn, tweenBackHandler);
-			if (renderNow) _tweenCore.restart();
 			_targDispatcher = evDisp;
+			if (_initVars) new tweenClass(targ, .1, _initVars ).complete();
+			if (_toVars) {
+				_tweenCore = new tweenClass(targ, duration, _toVars );
+				if (dispatchDraw) _tweenCore.vars.onUpdate = dispatchDrawBubble;
+				_tweenCore.pause();
+				if (eventTo) evDisp.addEventListener( eventTo, tweenToHandler, false, 0, true);
+				if (eventReturn) evDisp.addEventListener( eventReturn, tweenBackHandler, false, 0, true);
+				if (renderNow) _targDispatcher.dispatchEvent( new Event(eventTo) );
+			}
+		
 		}
 		
 		protected function dispatchDrawBubble():void {
 			_targDispatcher.dispatchEvent( new CamoDisplayEvent(CamoDisplayEvent.DRAW, true) );
 		}
 		
-
+		
+		
+		
+		
+		private var _tweenedTo:Boolean = false;
 		
 		protected function tweenToHandler(e:Event):void {
+			
+			if (_eventToFromRecover) {
+				recoverEventFrom();
+			}
+			
+			
 		
+			//var twc:TweenCore = new tweenClass(e.currentTarget, duration, _toVars );
+			//if (dispatchDraw) twc.vars.onUpdate = dispatchDrawBubble;
+			
+			
+			if (oneShot > ONESHOT_NONE) {
+				(e.currentTarget as IEventDispatcher).removeEventListener(eventTo, tweenToHandler);
+
+				if (oneShot > ONESHOT_ONCE) {
+					_tweenCore.vars.onComplete = recoverEventTo;
+					_eventToRecover = true;
+				}
+			}
+			
+			/*
+			if (_tweenCore.currentTime > 0) {
+				//_tweenCore.complete(true, true);
+				_tweenCore.reverse();
+			}
+			*/
+			//else
 			_tweenCore.restart();
-			if (oneShot) AncestorListener.removeEventListenerOf(e.currentTarget as IEventDispatcher, eventTo, tweenToHandler);
 		}
 		
 		protected function tweenBackHandler(e:Event):void {
+			if (_tweenCore == null) return;
+			
 			_tweenCore.reverse();
-			if (oneShot) AncestorListener.removeEventListenerOf(e.currentTarget as IEventDispatcher, eventReturn, tweenToHandler);
+			
+			if (_eventToRecover) {
+				recoverEventTo();
+			}
+			
+			if (oneShot > ONESHOT_NONE) {
+				(e.currentTarget as IEventDispatcher).removeEventListener(eventReturn, tweenToHandler);
+				if (oneShot > ONESHOT_ONCE) {
+					_tweenCore.vars.onComplete = recoverEventFrom;
+					_eventToFromRecover = true;
+				}
+			}
+			
+		}
+		
+		protected var _eventToRecover:Boolean = false;
+		protected var _eventToFromRecover:Boolean = false;
+		
+		protected function recoverEventTo():void {
+			_targDispatcher.addEventListener(eventTo, tweenToHandler, false, 0, true);
+			_eventToRecover =false;
+			
+		}
+		protected function recoverEventFrom():void {
+			_targDispatcher.addEventListener(eventReturn, tweenBackHandler, false, 0, true);
+			_eventToFromRecover = false;
 		}
 		
 		public function destroy():void {
 			if (_targDispatcher == null) return;
 
-			if (eventTo) AncestorListener.removeEventListenerOf(_targDispatcher, eventTo, tweenToHandler);
-			if (eventReturn) AncestorListener.removeEventListenerOf(_targDispatcher, eventReturn, tweenBackHandler);
+			if (eventTo) _targDispatcher.removeEventListener( eventTo, tweenToHandler);
+			if (eventReturn) _targDispatcher.removeEventListener( eventReturn, tweenBackHandler);
 			if (_restoreVars) {
 				if (restoreDuration == 0)  new tweenClass(_targDispatcher, .1, _restoreVars ).complete();
 				else new tweenClass(_targDispatcher, restoreDuration, _restoreVars );

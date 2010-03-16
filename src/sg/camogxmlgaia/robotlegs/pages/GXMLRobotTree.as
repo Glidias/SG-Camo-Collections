@@ -2,11 +2,17 @@
 {
 	import com.gaiaframework.api.IDisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.system.ApplicationDomain;
+	import flash.utils.describeType;
 	import flash.utils.Dictionary;
+	import flash.utils.getDefinitionByName;
+	import flash.utils.getQualifiedClassName;
 	import org.robotlegs.core.IInjector;
 	import sg.camogxmlgaia.pages.GXMLIndexTree;
 	import sg.camogxmlgaia.robotlegs.adaptors.*;
 	import sg.camogxmlgaia.robotlegs.api.*;
+	
+	
 	
 	
 	/**
@@ -18,6 +24,9 @@
 		
 		protected var _injector:IInjector;
 		protected var _mainContextProvider:IMainContextProvider;
+		
+		private static var DICT:Dictionary = new Dictionary();
+		
 		
 		public function GXMLRobotTree() 
 		{
@@ -56,7 +65,7 @@
 		 * registering either a mediator or context to the RobotLegs framework.
 		 * @param	vc		The view component, which is usually a DisplayObject for the mediator or a 
 		 * 					DisplayObjectContainer for the context.
-		 * @param	payload	 A class / class name to instantiate
+		 * @param	classe	 A mediator/context class to instantiate
 		 * @param	branch	A specified page branch to determine the lifecycle of the instance, 
 		 * 					otherwise if null or blank, uses current index page branch. You can use unique named instances under
 		 * 					a page branch by specifying a single '*' character and the name after it.
@@ -70,18 +79,28 @@
 		 * 							RobotLegs/SwiftSuspenders.
 		 * @return
 		 */
-		public function createMediator(vc:Object, payload:*, branch:String=null, node:XML = null, subject:*=null, nodeSpawn:Boolean=false):void {
-			checkPageInstance(payload, branch, node, subject, createRLModule, [nodeSpawn,vc,RLDestroyableMediator]);
+		public function createMediator(vc:Object, classe:Class, branch:String=null, node:XML = null, subject:*=null, nodeSpawn:Boolean=false):void {
+			checkPageInstance(classe, branch, node, subject, createRLModule, [nodeSpawn,vc,RLDestroyableMediator]);
 		}
 		
-		public function createContext(vc:DisplayObjectContainer, payload:*, branch:String = null, node:XML = null, subject:*= null, nodeSpawn:Boolean = false):void {
-			checkPageInstance(payload, branch, node, subject, createRLModule, [nodeSpawn,vc,RLDestroyableContext]);
+		public function createContext(vc:DisplayObjectContainer, classe:Class, branch:String = null, node:XML = null, subject:*= null, nodeSpawn:Boolean = false):void {
+			checkPageInstance(classe, branch, node, subject, createRLModule, [nodeSpawn,vc,RLDestroyableContext]);
 		}
 		
 		/** @private */
-		protected function createRLModule(payload:*, branch:String, node:XML, subject:*, dictToRegister:Dictionary, keyToRegister:String, nodeSpawn:Boolean, containerObj:Object, moduleClass:Class):* {
-			var classe:Class = payload as Class || getClass(payload);
+		protected function createRLModule(classe:Class, branch:String, node:XML, subject:*, dictToRegister:Dictionary, keyToRegister:String, nodeSpawn:Boolean, containerObj:Object, moduleClass:Class):* {
 			var instance:*;
+			
+			var className:String = getQualifiedClassName(classe);
+			var implMap:Object = DICT[className] || getImplMap(containerObj, className);
+			_injector.mapValue( containerObj.constructor, containerObj, "gxmlView");
+			
+			for (var i:String in implMap) {
+				var chkClass:Class =  implMap[i] ? implMap[i] as Class || (implMap[i] = ApplicationDomain.currentDomain.hasDefinition(i) ? getDefinitionByName(i) as Class : null) : null;
+				if (!chkClass) continue;	
+				_injector.mapValue(chkClass, containerObj, "gxmlView");
+			}
+
 			if (node!=null) {
 				if (!nodeSpawn) {
 					instance = _injector.instantiate(classe);
@@ -93,10 +112,42 @@
 				}
 			}
 			else instance = _injector.instantiate(classe);
+		
+						
+			_injector.unmap( containerObj.constructor, "gxmlView");
+			for (i in implMap) {
+				chkClass = implMap[i];
+				if (!chkClass) continue;
+				_injector.unmap(chkClass, "gxmlView");
+			}
+			
+		
+			
 			var mod:* = new moduleClass(containerObj, instance);
 			_injector.injectInto(mod);
 			dictToRegister[keyToRegister] = mod; 
+			
 			return instance;
+		}
+		
+		
+		protected function getImplMap(vc:Object, className:String):Object {
+			var implHash:Object = { };
+			
+			var desc:XML = describeType(vc);
+			var xmlList:XMLList = desc..extendsClass;
+			
+			for each( var xml:XML in xmlList) {
+				implHash[xml.@type.toString()] = true;
+			}
+			xmlList = desc..implementsInterface;
+			for each(xml in xmlList) {
+				implHash[xml.@type.toString()] = true;
+			}
+			
+			DICT[className] = implHash;
+			return implHash;
+			
 		}
 		
 	}

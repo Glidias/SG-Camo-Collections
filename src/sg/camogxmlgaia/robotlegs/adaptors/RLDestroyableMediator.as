@@ -16,13 +16,21 @@
 		[Inject]
 		public var map:IMediatorMap;
 		
+		protected var vc:Object;
+		
 		public function RLDestroyableMediator(vc:Object, instance:IMediator) {
 			mediator = instance;
+			this.vc = vc;
+		}
+		
+		[PostConstruct]
+		public function init():void {
 			map.registerMediator(vc, mediator);
 		}
 		
 		public function destroy():void {
 			map.removeMediator(mediator);
+			vc = null;
 		}
 	}
 

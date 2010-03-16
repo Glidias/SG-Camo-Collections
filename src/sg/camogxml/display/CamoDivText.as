@@ -1,6 +1,7 @@
 ﻿package sg.camogxml.display 
 {
 	import flash.display.DisplayObject;
+	import flash.display.Sprite;
 	import flash.text.TextField;
 	import sg.camo.interfaces.IText;
 	import sg.camo.interfaces.ITextField;
@@ -37,7 +38,23 @@
 		override public function get reflectClass():Class {
 			return CamoDivText;
 		}
+		
+		/**
+		 * Stage/generic instance setter to set/add a textfield-based sprite that implements the ITextField interface
+		 */
+		public function set textSprite(spr:Sprite):void {
+			var findField:TextField = spr is ITextField ? (spr as ITextField).textField : spr.getChildByName("txtLabel") as TextField;
+			if ( findField ) {
+				if (_textField && _textField.parent === display) {
+					removeChild(_textField);
+				}
+				_textField = findField;
+			}
+			else throw new Error("CamoDivText set textSprite() failed.  Can't find textfield in sprite!");
+			super.displaySprite = spr;
+		}
 
+		
 		/**
 		 * Stage instance setter. Considers an already-staged textfield instance (usually 
 		 * with embed fonts).
@@ -50,6 +67,7 @@
 			txtField.x = 0;
 			txtField.y = 0;
 		}
+		
 		
 		/**
 		 * Turns on word wrapping to ensure text break down to next line if text exceeds

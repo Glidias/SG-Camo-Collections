@@ -50,6 +50,12 @@
 			return _behaviourBase || _defGetter;
 		}
 		
+		override public function destroy():void {
+			super.destroy();
+			_behaviourBase = null;
+			_defGetter = null;
+		}
+		
 		override public function parseNode(page:IPageAsset):void {
 			super.parseNode(page);
 			if ( _node.@implementation !=undefined )  _implementation = _node.@implementation;

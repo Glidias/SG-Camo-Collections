@@ -4,11 +4,12 @@
 	import flash.events.Event;
 	import flash.events.IEventDispatcher;
 	import flash.utils.Dictionary;
-	import sg.camo.ancestor.AncestorListener;
+	import sg.camo.behaviour.AbstractProxyBehaviour;
 	import sg.camo.greensock.GSPluginVars;
 	import sg.camo.greensock.transitions.GSTransition;
 	import sg.camo.interfaces.IBehaviour;
 	import sg.camo.greensock.EasingMethods;
+	import sg.camo.interfaces.IPropertyApplier;
 	
 	/**
 	 * Default hardcoded GSTransition instance that runs over targetted object.
@@ -16,7 +17,7 @@
 	 */
 	
 	[Inject]
-	public class GSTransitionBehaviour implements IBehaviour 
+	public class GSTransitionBehaviour extends AbstractProxyBehaviour
 	{
 		public static const NAME:String = "GSTransitionBehaviour";
 		
@@ -44,9 +45,13 @@
 
 		public var renderNow:Boolean = false;
 		
+		[Inject]
+		public var propApplier:IPropertyApplier;
+		
 		
 		public function GSTransitionBehaviour(pluginVars:GSPluginVars = null) 
 		{
+			super(this);
 			gsPluginVars = pluginVars;
 		}
 		
@@ -56,9 +61,12 @@
 		
 		
 		protected function transitionInHandler(e:Event):void {
-			
+
 			var twc:TweenCore = myBaseTransition.transitionInPayload;
 
+			if (twc == null) return;
+			
+			
 			twc.vars.onComplete = dispatchInComplete;
 			
 			
@@ -66,7 +74,7 @@
 			
 
 			if (oneShot) {
-				AncestorListener.removeEventListenerOf(e.currentTarget as IEventDispatcher, eventIn, transitionInHandler);
+				(e.currentTarget as IEventDispatcher).removeEventListener( eventIn, transitionInHandler);
 			}
 		}
 		
@@ -80,6 +88,9 @@
 		protected function transitionOutHandler(e:Event):void {
 			var twc:TweenCore = myBaseTransition.transitionOutPayload;
 			
+			
+			if (twc == null) return;
+			
 			if (!twc.reversed) {
 				
 			
@@ -90,24 +101,24 @@
 				twc.vars.onReverseComplete = dispatchOutComplete;
 			}
 			
-			if (oneShot) AncestorListener.removeEventListenerOf(e.currentTarget as IEventDispatcher, eventOut, transitionOutHandler);
+			if (oneShot) (e.currentTarget as IEventDispatcher).removeEventListener(eventOut, transitionOutHandler);
 		}
 		
 		
-		public function get behaviourName():String {
+		override public function get behaviourName():String {
 			return NAME;
 		}
 
-		public function activate(targ:*):void {
+		override  public function activate(targ:*):void {
 			targDispatcher = targ as IEventDispatcher;
 			
 			myBaseTransition = createGSTransition();
-			for (var i:String in propMap) {
-				myBaseTransition[i] = propMap[i];
-			}
+			if (propApplier != null) propApplier.applyProperties(myBaseTransition, propMap)
+			else trace("GSTransitionBehaviour! No property applier applied!");
 			
-			AncestorListener.addEventListenerOf(targDispatcher,eventIn, transitionInHandler);
-			AncestorListener.addEventListenerOf(targDispatcher, eventOut, transitionOutHandler);
+			
+			targDispatcher.addEventListener(eventIn, transitionInHandler, false, 0, true);
+			targDispatcher.addEventListener(eventOut, transitionOutHandler, false, 0, true);
 			
 			postActivate();
 		}
@@ -121,67 +132,21 @@
 		}
 		
 		
-		// Proxy methods boiler plate grrrrr...
-		public function set durationIn(val:Number):void {
-			propMap.durationIn = val;
-		}
-		public function set durationOut(val:Number):void {
-			propMap.durationOut = val;
-		}
-		public function set reverseOnInterrupt(val:Boolean):void {
-			propMap.reverseOnInterrupt = val;
-		}
-		public function set reverseOnOut(val:Boolean):void {
-			propMap.reverseOnOut = val;
+		// Proxy methods
+		override protected function $setProperty(name:*, value:*):void {
+			propMap[name] = value;
 		}
 		
-		public function set easeIn(val:String):void {
-			propMap.easeIn = EasingMethods.getEasingMethod(val);
+		override protected function $getProperty(name:*):* {
+			return propMap[name];
 		}
-		public function set easeOut(val:String):void {
-			propMap.easeOut =EasingMethods.getEasingMethod(val);
-		}
-		
-		
-		
-		public function set initVars(val:Object):void {
-			propMap.initVars = val;
-		}
-		
-		public function set setVars(val:Object):void {
-			propMap.setVars = val;
-		}
-		
-		public function set restoreVars(val:Object):void {
-			propMap.restoreVars = val;
-		}
-		
-		public function set ease(val:String):void {
-			propMap.ease = EasingMethods.getEasingMethod(val);
-		}
-		
-		public function set duration(val:Number):void {
-			propMap.duration = val;
-		}
-		
-		public function set fromVars(val:Object):void {
-			propMap.fromVars = val;
-		}
-		public function set inVars(val:Object):void {
-			propMap.inVars = val;
-		}
-		
-		public function set outVars(val:Object):void {
-			propMap.outVars = val;
-		}
-		
 		
 		// Destructor
 		
-		public function destroy():void  {
+		override public function destroy():void  {
 			myBaseTransition.destroy();
-			AncestorListener.removeEventListenerOf(targDispatcher, eventIn, transitionInHandler);
-			AncestorListener.removeEventListenerOf(targDispatcher, eventOut, transitionOutHandler);
+			targDispatcher.removeEventListener( eventIn, transitionInHandler);
+			targDispatcher.removeEventListener( eventOut, transitionOutHandler);
 		}
 		
 	}

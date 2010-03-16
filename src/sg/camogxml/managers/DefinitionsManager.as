@@ -32,13 +32,13 @@
 		
 		/**
 		 * Adds a single  class definition manually
-		 * @param	classe	The class definition
+		 * @param	classeOrDef	The class definition or any object definition
 		 * @param	ider	A custom definition id for gxml rendering 
 		 * @param	id		The id to assosiate this 
 		 */
-		public function addDefinition(classe:Class, ider:String, id:String):void {
+		public function addDefinition(classeOrDef:Object, ider:String, id:String):void {
 			var chkDict:Dictionary = _idHash[id] || createNewHash(id);
-			var node:Node = new Node( classe );
+			var node:Node = new Node( classeOrDef );
 			var chkList:TailList = _listHash[ider] || createNewList(ider, node);
 			if (!chkList.isNew) chkList.appendNode(node);
 			chkDict[node] = chkList;
@@ -99,7 +99,7 @@
 		
 		public function getDefinition(str:String):Object {
 			var list:TailList = _listHash[str];
-			return list ? list.tail.data : Shape;  // return dummy shape class
+			return list ? list.tail.data : null;  
 		}
 		public function hasDefinition(str:String):Boolean {
 			return _listHash[str];

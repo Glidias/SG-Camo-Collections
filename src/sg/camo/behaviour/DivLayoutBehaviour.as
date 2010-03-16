@@ -8,7 +8,6 @@
 	import flash.events.Event;
 	import flash.events.IEventDispatcher;
 	import flash.utils.Dictionary;
-	import sg.camo.ancestor.AncestorListener;
 	import sg.camo.behaviour.AbstractLayout;
 	import sg.camo.interfaces.IBehaviouralBase;
 	import sg.camo.interfaces.IDisplayBase;
@@ -25,6 +24,9 @@
 	 */
 	public class DivLayoutBehaviour extends AbstractLayout
 	{
+		public static const NAME:String = "DivLayoutBehaviour";
+		
+		
 		/** @private Casted DisplayObjectContainer to IDiv interface, if available. */
 		protected var _containerWidth:Number;
 		protected var _containerHeight:Number;
@@ -46,10 +48,8 @@
 		/** @private */ protected var _firstNegative:ZChildNode;
 		/** @private */ protected var _zDict:Dictionary = new Dictionary();
 	
-		/**
-		 * Automatically prepends any newly added children at a particular flow layout index (if available).
-		 * If set to a negative value, it'll turns off prepending ability (which is by default, not enabled).
-		 */
+		
+		[CamoInspectable(description = "Attempts to prepend flow-based children at a particular layout flow index", defaultValue="-1", immutable="redo", type="pint")]
 		public function set prependFlowIndex(val:Number):void {
 			_prependFlowIndex = int(val);
 			_prepend =  val >= 0;
@@ -60,13 +60,11 @@
 		/** @private */  protected var _prepend:Boolean = false;
 		/** @private */  protected var _prependFlowIndex:int = -1;
 		
+		override public function get behaviourName():String {
+			return NAME;
+		}
 
-		/**
-		 * Enforce a fixed depth index when adding children to display flow if the added IDiv's z-index 
-		 * is at default value (ie.neutral zero or undefined)
-		 * Using negative values for addChildDepth doesn't perform any re-arrangements of display list depths for 
-		 * flow children, which is is the case by default;
-		 */
+		[CamoInspectable(description = "Attempts to add any flow-based children at a particular default Flash display list child index if no positive/negative z-index value is found for the added child.", defaultValue = "-1", immutable="redo", type="pint")]
 		public function set addChildDepth(val:Number):void {
 			_addChildDepth = int(val);
 		}
@@ -118,6 +116,7 @@
 					
 					referNode = appendZNodeFrom(myNode, firstNode);
 					if (referNode) {
+	
 						tarIndex = _disp.getChildIndex(referNode.child) + vec;
 						tarIndex = tarIndex < 0 ? 0 : tarIndex > _disp.numChildren - 1 ? _disp.numChildren - 1 : tarIndex;
 						
@@ -130,12 +129,22 @@
 					}
 					else {
 						vec = isPositive ? 0 : 1;
+		
+										
+		
+						
 						_disp.setChildIndex(child, _disp.getChildIndex(firstNode.child)+ vec );
 					}
 				}
 				return;
 			}
 			else if (_firstPositive || _firstNegative) {
+				try {
+					
+				}
+				catch (e:Error) {
+					
+				}
 				var depthTop:int = _firstPositive ? _disp.getChildIndex(_firstPositive.child )  : int.MAX_VALUE;
 				var depthMiddle:int =  (div.position === ABSOLUTE || _addChildDepth < 0) ?   _disp.numChildren - 1 :  validateDepth(_disp, _addChildDepth);
 				var depthBottom:int = _firstNegative ? _disp.getChildIndex(_firstNegative.child ) + 1 : 0; 	
@@ -237,11 +246,13 @@
 		
 		override public function destroy():void {
 			if (_disp) {
-				AncestorListener.removeEventListenerOf(_disp, CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler);
-				AncestorListener.removeEventListenerOf(_disp, GDisplayNotifications.Z_INDEX_CHANGE, onZIndexChange);
+				_disp.removeEventListener( CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler);
+				
+				_disp.removeEventListener( GDisplayNotifications.Z_INDEX_CHANGE, onZIndexChange);
 			}
 			super.destroy();
 			_zDict = null;
+		
 		}
 		
 		
@@ -260,10 +271,8 @@
 		/** @private */ protected var _lineHeight:Number = 0;
 		/** @private */ protected var _align:String = LEFT;
 		
-		/**
-		 * Sets line height for inline elements for every break to a block
-		 * element or wrapping to next line.
-		 */
+
+		[CamoInspectable(description = "Sets line height for inline elements per line break.", defaultValue = "0")]
 		public function set lineHeight(val:Number):void {
 			_lineHeight = val;
 			if (_disp) InvalidateDisplay.invalidate(_disp);
@@ -272,9 +281,7 @@
 			return _lineHeight;
 		}
 
-		/**
-		 * Sets horizontal alignment for inline elements
-		 */
+		[CamoInspectable(description = "Sets horizontal alignment of inline elements per line break", type="alignRatio", defaultValue="none")]
 		public function set textAlign(val:String):void {
 			_textAlignStr = val;
 			_textAlignRatio = AlignValidation.toAlignRatio(val);
@@ -295,9 +302,9 @@
 			_dispBase = targ as IDisplayBase;
 			if (!_disp) return;
 			updateContainerDimensions();
-			AncestorListener.addEventListenerOf(_disp, CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler, 1, true);
+			_disp.addEventListener( CamoChildEvent.ADD_CHILD, addChildInterruptDepthHandler,false, 1, true);
 			
-			AncestorListener.addEventListenerOf(_disp, GDisplayNotifications.Z_INDEX_CHANGE, onZIndexChange);
+			_disp.addEventListener( GDisplayNotifications.Z_INDEX_CHANGE, onZIndexChange, false ,0, true);
 		}
 		
 		/** @private */
@@ -332,7 +339,7 @@
 				processFirstNode(node);
 			}
 			else if (_prepend) {
-				if (_prependFlowIndex <= 0) {
+				if (_prependFlowIndex == 0) {
 					node.next = _firstNode;
 					_firstNode.prev = node;
 					_firstNode = node;
@@ -340,7 +347,6 @@
 					processNode(node.next, node);
 				}
 				else {
-					
 					var validNode:DivNode = _firstNode;
 					var targNode:DivNode = _firstNode;
 					var count:int = 0;
@@ -352,6 +358,8 @@
 					}
 					node.prev = validNode;
 					node.next = validNode.next;
+					if (validNode.next) validNode.next.prev = node;
+					
 					validNode.next = node;
 					
 					
@@ -419,9 +427,10 @@
 								if (vertAlign != AlignValidation.VALUE_NONE) 
 									bNode.vAlignOffset = (bHighestHeight - bNode.div.height) * vertAlign;
 								if (gotTextAlign) bNode.hAlignOffset = xOffset;
-							
+								
 								bNode = bNode.prev;
-							}			
+							}	
+							
 		}
 		
 		
@@ -477,7 +486,7 @@
 	
 					if (lastDiv.displayFlow != INLINE) {
 						mX = 0;
-						mY = prevNode.y + lastDiv.marginBottom + lastDiv.height + add
+						mY = prevNode.y + lastDiv.marginBottom + lastDiv.height + add;
 						node.moveTo(mX, mY);
 					}
 					else {
@@ -485,6 +494,7 @@
 						//trace("Updating:" + node.prev.);
 						//trace("BLOCK:" + node.div.displayFlow);
 						node.rowIndex = prevNode.rowIndex;
+						updateHighestDivFrom(node);
 						updateVAlignFrom(node);
 						
 						mX = 0;
@@ -539,6 +549,7 @@
 						node = node.next;
 					}
 				}
+				
 		}
 		
 		override protected function removeChildHandler(e:CamoChildEvent):void {
@@ -554,6 +565,15 @@
 				
 				delete _absDict[child];
 			}
+			
+			// todo, clean up list for z indexes:
+			if (_firstPositive && child === _firstPositive.child) {
+				_firstPositive = null;
+			}
+			else if (_firstNegative &&  child === _firstNegative.child) {
+				_firstNegative = null;
+			}
+	
 			
 			updateContainerDimensions();
 		}

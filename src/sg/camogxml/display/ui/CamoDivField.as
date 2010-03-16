@@ -1,7 +1,9 @@
 ﻿package sg.camogxml.display.ui
 {
 	import flash.text.TextField;
+	import flash.text.TextFormat;
 	import sg.camogxml.display.CamoDivText;
+	import sg.camo.behaviour.AlignValidation;
 	
 	/**
 	 * This is the base class for form fields, or textfields with fixed boundary dimensions.
@@ -10,7 +12,6 @@
 	 */
 	public class CamoDivField extends CamoDivText 
 	{
-		
 		/**
 		 * CamoDivField constructor. Textfield starts WITHOUT multi-line support by default.
 		 * and doesn't use autosize as text contents are restricted within the "box"'s
@@ -21,7 +22,7 @@
 			super();
 			
 			// Different conventions for CamoDivField over CamoDivText
-			_textField.autoSize = "none";   
+			_textField.autoSize = "left";   
 			_textField.multiline = false;   
 		}
 		
@@ -29,7 +30,8 @@
 			return CamoDivText;
 		}
 		
-		
+
+	
 		
 		/**
 		 * Stage Instance setter that works similar to superclass implementation, but 

@@ -4,7 +4,8 @@
 	import sg.camo.interfaces.ITypeHelper;
 	/**
 	 * GXML adaptor globals to set before running anything else under CamoGXML's static utility
-	 * package.
+	 * package. Technically, such dependencies could be set through some dependency injector
+	 * utility, but for simplicity's sake, I decided to provide static setters instead.
 	 * 
 	 */
 	

@@ -7,7 +7,6 @@
 	import flash.events.Event;
 	import flash.events.IEventDispatcher;
 	import flash.utils.Dictionary;
-	import sg.camo.ancestor.AncestorListener;
 	import sg.camo.greensock.CreateGSTweenVars;
 	import sg.camo.notifications.GDisplayNotifications;
 	import sg.camo.greensock.GSPluginVars;
@@ -62,10 +61,14 @@
 		 */															
 		public function GSListTransition(target:Object, tweenClass:Class=null, pluginVars:GSPluginVars=null, listenAdd:String=GDisplayNotifications.ADD_LIST_ITEM, listenRemove:String=GDisplayNotifications.REMOVE_LIST_ITEM, timelineClass:Class = null ) 
 		{
+			
 			super(target, tweenClass, pluginVars);
+			if (target == null) return;
 			timelineClass = timelineClass || TimelineLite;
 			timeline = new timelineClass() as TimelineLite;
+			
 			listenAdd = listenAdd || GDisplayNotifications.ADD_LIST_ITEM;
+			
 			listenRemove = listenRemove || GDisplayNotifications.REMOVE_LIST_ITEM;
 			
 			
@@ -77,8 +80,8 @@
 			$listenAdd = listenAdd;
 			$listenRemove = listenRemove;
 			if (disp == null) return;
-			AncestorListener.addEventListenerOf(disp, listenAdd, addItemHandler);
-			AncestorListener.addEventListenerOf(disp, listenRemove, removeItemHandler);
+			disp.addEventListener(listenAdd, addItemHandler, false, 0, true);
+			disp.addEventListener(listenRemove, removeItemHandler, false, 0, true );
 		}
 		
 		public function get listenAdd():String {
@@ -112,6 +115,7 @@
 		 * Appends item to timeline of transition list
 		 * */
 		protected function addItemHandler(e:Event):void {
+		
 			var targetToAdd:Object = e is CamoChildEvent ? (e as CamoChildEvent).child : null;
 			if (targetToAdd != null) {
 				
@@ -164,6 +168,12 @@
 			
 		}
 		
+		override protected function checkIsReversible(tw:TweenCore):Boolean {
+			var ret:Boolean = super.checkIsReversible(tw);
+			if (ret) timeline.clear(timeline.getChildren(false, true, true, _curTween.totalDuration - _curTween.totalTime))
+			return ret;
+		}
+		
 		// -- ITransitionModule
 		
 		override public function get transitionInPayload():* {
@@ -205,10 +215,12 @@
 		 * Clears listeners and de-activates transition scheme generation. 
 		 */
 		override public function destroy():void {
+			if (_target == null) return;
+			
 			var disp:IEventDispatcher = _target as IEventDispatcher;
 			if (disp != null) {
-				AncestorListener.removeEventListenerOf(disp, $listenAdd, addItemHandler);
-				AncestorListener.removeEventListenerOf(disp, $listenRemove, removeItemHandler);
+				disp.removeEventListener( $listenAdd, addItemHandler);
+				disp.removeEventListener( $listenRemove, removeItemHandler);
 			}
 			super.destroy();
 			timeline.clear();

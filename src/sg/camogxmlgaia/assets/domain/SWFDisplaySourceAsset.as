@@ -20,13 +20,20 @@
 	public class SWFDisplaySourceAsset extends SWFLibraryAsset implements IDisplayRenderSource, ISourceAsset
 	{
 		/** @private */
-		protected var _destroyList:Array = [];
+		protected var _destroyList:Array;
 		
 		
 		public function SWFDisplaySourceAsset() 
 		{
 			
 		}
+		
+		override public function init():void {
+			super.init();
+			_destroyList = [];
+		}
+		
+
 		
 		public function getDisplayRenders():Array {
 			return _destroyList.concat();

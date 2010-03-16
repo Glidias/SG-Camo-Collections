@@ -17,15 +17,21 @@
 	public class HrefBehaviour implements IBehaviour {
 		
 		/**  Determines "text" value to send in TextEvent.LINK during a  click */
+		[CamoInspectable(description = "Determines 'text' value to send in TextEvent.LINK bubble upon click, or a url to navigate to immediately.", defaultValue = "-1", immutable="redo", type="int")]
 		public var href:String;
+		
+		[CamoInspectable(description = "Indicates whether to navigate immediately with href value through navigateToURL()")]
+		public var navigateNow:Boolean = false;
+				
+		[CamoInspectable(description = "Targetted window if navigateNow is set to true")]
+		public var window:String = "_blank";
+		
 		
 		/** @private */
 		protected var _targDispatcher:IEventDispatcher;
 		
 		public static const NAME:String = "HrefBehaviour";
-		
-		public var navigateNow:Boolean = false;
-		public var window:String = "_blank";
+
 		
 		/**
 		 * Constructor
@@ -52,7 +58,7 @@
 			}
 			
 			
-			if (!navigateNow) navigateNow = href.substr(0, 7) === "http://" || href.substr(0, 9) === "mailto://";
+			//if (!navigateNow) navigateNow = href.substr(0, 7) === "http://" || href.substr(0, 9) === "mailto://";
 			
 			_targDispatcher.addEventListener(MouseEvent.CLICK, hrefHandler, false , 0, true);
 			

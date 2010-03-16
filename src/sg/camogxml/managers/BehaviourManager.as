@@ -54,13 +54,14 @@
 		 * @return
 		 */
 		public function getBehaviour(behName:String):IBehaviour {
-			return liveBehaviours[behName] ? liveBehaviours[behName] : new (getDefinition(behName))() as IBehaviour || new DummyBehaviour(behName);
+			return liveBehaviours[behName] ? liveBehaviours[behName] : (new (getDefinition(behName))() as IBehaviour) || new DummyBehaviour(behName);
 		}
 		
 		
 		override public function getDefinition(str:String):Object {
+			
 			var chkClass:Class = super.getDefinition(str) as Class;
-			if (chkClass == Shape) return DummyBehaviour; // also validates type
+			if (chkClass == null) throw new Error("BehaviourManager getDefinition failed for:"+str);
 			return chkClass;
 		}
 		
@@ -76,7 +77,7 @@ import sg.camo.interfaces.IBehaviour;
 internal class DummyBehaviour implements IBehaviour {
 	
 	public function DummyBehaviour(behRequest:String="{some request}"):void {
-		trace("BehaviourManager DummyBehaviour created:. No behaviour found for: " +  behRequest);
+		throw new Error("BehaviourManager DummyBehaviour created:. No behaviour found for: " +  behRequest);
 	}
 	
 	public function get behaviourName():String {

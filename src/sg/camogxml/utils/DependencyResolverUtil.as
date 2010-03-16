@@ -1,4 +1,4 @@
-﻿package sg.camogxmlgaia.utils 
+﻿package sg.camogxml.utils 
 {
 	import flash.system.ApplicationDomain;
 	import flash.utils.describeType;
@@ -121,7 +121,9 @@
 				
 					dummySubImpl = implHash[ className ] || getNewImplHash( className, inspectClass );
 				
-					if (dummySubImpl[findClassName]) return inspectClass;
+					var considerCurrent:Boolean = xml.@consider == "true" ||  xml.*.length() < 1;
+					if ( considerCurrent && dummySubImpl[findClassName]) return inspectClass;
+					
 					retVal =   attemptResolveRecurse(xml, inspectClass, findClassName, dummySubImpl   );
 					if (retVal) return retVal; 
 				}

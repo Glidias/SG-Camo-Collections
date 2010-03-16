@@ -15,7 +15,7 @@
 		 * being sent from typical form implementations.
 		 */
 		public var params:Object;
-		public static const SUBMIT:String = "GFormEvent.SUBMIT";
+		public static const SUBMIT:String = "FormEvent.SUBMIT";
 		
 		/**
 		 * 

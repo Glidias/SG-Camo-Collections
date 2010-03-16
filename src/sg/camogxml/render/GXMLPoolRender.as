@@ -20,7 +20,7 @@
 	{
 		
 	
-		protected var _isCloned:Boolean = true;
+
 		protected var _poolValue:int = 1;
 		protected var _renderPool:RenderPool;
 		
@@ -128,7 +128,6 @@
 				}
 				_renderPool = null;
 			}
-			_curBehNode = null;
 		}
 		
 

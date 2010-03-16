@@ -5,7 +5,6 @@
 	import sg.camo.interfaces.IBehaviour;
 	import flash.events.MouseEvent;
 	import flash.events.IEventDispatcher;
-	import sg.camo.ancestor.AncestorListener;
 	/**
 	 * Sets up a targetted dispatching object (normally a holder sprite or just some generic IEventDispatcher) to automatically target a movieclip to scrub forwards/backwards based on the supplied event types.
 	 * By default, this behaviour is set to scrub forward continuously during MouseEvent.ROLL_OVER and to start scrubbing backwards during
@@ -56,9 +55,9 @@
 		public function set listenScrubForward(type:String):void {
 			if (_targDispatcher != null) { // already activated
 				if (_listenScrubForward != null) {
-					AncestorListener.removeEventListenerOf(_targDispatcher, _listenScrubForward, handleScrubForward);
+					_targDispatcher.removeEventListener(_listenScrubForward, handleScrubForward);
 					_listenScrubForward = type;
-					AncestorListener.addEventListenerOf(_targDispatcher, _listenScrubForward, handleScrubForward);
+					_targDispatcher.addEventListener(_listenScrubForward, handleScrubForward, false, 0, true);
 					return
 				}
 			}
@@ -70,9 +69,9 @@
 		public function set listenScrubBackward(type:String):void {
 			if (_targDispatcher != null) { // already activated
 				if (_listenScrubBackward != null) {
-					AncestorListener.removeEventListenerOf( _targDispatcher, _listenScrubBackward, handleScrubBackward);
+					_targDispatcher.removeEventListener( _listenScrubBackward, handleScrubBackward);
 					_listenScrubBackward = type;
-					AncestorListener.addEventListenerOf( _targDispatcher, _listenScrubBackward, handleScrubBackward);
+					_targDispatcher.addEventListener( _listenScrubBackward, handleScrubBackward, false ,0, true);
 					return;
 				}
 			}
@@ -137,14 +136,14 @@
 			}
 			
 			_targDispatcher = chkDispatcher;
-			AncestorListener.addEventListenerOf(_targDispatcher, _listenScrubForward, handleScrubForward);
-			AncestorListener.addEventListenerOf(_targDispatcher, _listenScrubBackward, handleScrubBackward);
+			_targDispatcher.addEventListener(_listenScrubForward, handleScrubForward, false, 0, true);
+			_targDispatcher.addEventListener( _listenScrubBackward, handleScrubBackward, false, 0, true);
 		}
 		
 		public function destroy():void {
 			if (_targDispatcher == null || _target == null) return;
-			AncestorListener.removeEventListenerOf(_targDispatcher, _listenScrubForward, handleScrubForward);
-			AncestorListener.removeEventListenerOf(_targDispatcher, _listenScrubBackward, handleScrubBackward);
+			_targDispatcher.removeEventListener(_listenScrubForward, handleScrubForward);
+			_targDispatcher.removeEventListener(_listenScrubBackward, handleScrubBackward);
 			_target.removeEventListener(Event.ENTER_FRAME, enterFrameChecker);
 			_targDispatcher = null;
 			_target = null;

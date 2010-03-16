@@ -5,7 +5,6 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.errors.IllegalOperationError;
-	import sg.camo.ancestor.AncestorListener;
 	import sg.camo.interfaces.IBehaviour;
 	
 	/**
@@ -19,15 +18,16 @@
 		 */
 		protected var _listenDraw:Boolean = false;
 		
+		[CamoInspectable(description = "Auto-updates layout when child elements, behaviour, or the container resizes / or settings change. This must be set to true to update different layout settings at runtime.")]
 		public function set listenDraw(boo:Boolean):void {
 			if (_listenDraw == boo) return;
 			_listenDraw = boo;
 			if (_disp == null) return;
 			if (boo) {
-				AncestorListener.addEventListenerOf(_disp, CamoDisplayEvent.DRAW, reDrawHandler );
+				_disp.addEventListener(CamoDisplayEvent.DRAW, reDrawHandler, false, 0, true);
 			}
 			else {
-				AncestorListener.removeEventListenerOf(_disp, CamoDisplayEvent.DRAW, reDrawHandler);
+				_disp.removeEventListener(CamoDisplayEvent.DRAW, reDrawHandler);
 			}
 		}
 		public function get listenDraw():Boolean {
@@ -49,7 +49,7 @@
 		}
 		
 		public function get behaviourName():String {
-			return "";
+			throw new Error("AbstractLayout cannot have a behaviour name. Please override");
 		}
 	
 		public function activate(targ:*):void {
@@ -58,10 +58,10 @@
 				trace(behaviourName+" activate() halt. targ as DisplayObjectContainer is null!");
 				return;
 			}
-			var func:Function = AncestorListener.getAddListenerMethod(_disp);
-			func( CamoChildEvent.ADD_CHILD, addChildHandler, false, 0, true);
-			func( CamoChildEvent.REMOVE_CHILD, removeChildHandler, false, 0, true);
-			if (listenDraw) func(CamoDisplayEvent.DRAW, reDrawHandler, false , 0, true);
+
+			_disp.addEventListener( CamoChildEvent.ADD_CHILD, addChildHandler, false, 0, true);
+			_disp.addEventListener( CamoChildEvent.REMOVE_CHILD, removeChildHandler, false, 0, true);
+			if (listenDraw) _disp.addEventListener(CamoDisplayEvent.DRAW, reDrawHandler, false , 0, true);
 		}
 		
 		protected function addChildHandler(e:CamoChildEvent):void {
@@ -78,10 +78,9 @@
 		
 		public function destroy():void {
 			if (_disp == null) return;
-			var func:Function  = AncestorListener.getRemoveListenerMethod(_disp);
-			func( CamoChildEvent.ADD_CHILD, addChildHandler, false);
-			func( CamoChildEvent.REMOVE_CHILD, removeChildHandler, false);
-			func (CamoDisplayEvent.DRAW, reDrawHandler, false );
+			_disp.removeEventListener( CamoChildEvent.ADD_CHILD, addChildHandler, false);
+			_disp.removeEventListener( CamoChildEvent.REMOVE_CHILD, removeChildHandler, false);
+			_disp.removeEventListener (CamoDisplayEvent.DRAW, reDrawHandler, false );
 			_disp = null;
 		}
 		

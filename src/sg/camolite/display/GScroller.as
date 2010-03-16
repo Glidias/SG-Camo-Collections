@@ -120,8 +120,13 @@
 			var prop:String = isHorizontal ? "scrollH" : "scrollV";
 			
 			customTarget = customTarget ? customTarget : _scrollTarget;
-			if (customTarget!=null) customTarget[prop]  = scrollFactor;
+			if (customTarget != null) customTarget[prop]  = scrollFactor;
+			this.scrollFactor = scrollFactor;
 		}
+		
+		[Bindable(event="change")]
+		public var scrollFactor:Number = 0;
+		
 		
 		// Setups 
 		

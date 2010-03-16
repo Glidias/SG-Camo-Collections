@@ -1,10 +1,10 @@
-﻿package sg.camogxmlgaia.api 
+﻿package sg.camo.interfaces 
 {
 	
 	/**
 	 * Parse and write interface for NodeClassSpawnerManager.
 	 * 
-	 * @see sg.camogxmlgaia.inject.NodeClassSpawnerManager
+	 * @see sg.camogxml.utils.NodeClassSpawnerManager
 	 * 
 	 * @author Glenn Ko
 	 */

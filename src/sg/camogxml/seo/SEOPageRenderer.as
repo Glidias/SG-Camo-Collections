@@ -9,7 +9,7 @@
 	import sg.camo.interfaces.IDisplayRender;
 	import sg.camogxml.api.IFunctionDef;
 	import sg.camogxml.utils.FunctionDefCreator;
-	import sg.camogxmlgaia.api.INodeClassSpawner;
+	import sg.camo.interfaces.INodeClassSpawner;
 	
 	import sg.camo.interfaces.IList;
 	import sg.camo.interfaces.IListItem;

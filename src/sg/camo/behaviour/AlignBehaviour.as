@@ -5,7 +5,6 @@
 	import flash.events.IEventDispatcher;
 	import sg.camo.interfaces.IBehaviour;
 	import camo.core.events.CamoDisplayEvent;
-	import sg.camo.ancestor.AncestorListener;
 	import sg.camo.interfaces.IDisplayBase;
 	
 	/**
@@ -34,12 +33,16 @@
 		protected var _dispBase:IDisplayBase;
 		
 
-		public var _alignRatio:Number = AlignValidation.VALUE_NONE;
+		protected var _alignRatio:Number = AlignValidation.VALUE_NONE;
+		protected var _vAlignRatio:Number = AlignValidation.VALUE_NONE;
+		
+		[CamoInspectable(description = "Sets horizontal alignment of inner display contents", type="alignRatio", defaultValue="none")]
 		public function set align(val:String):void {
 			_alignRatio = AlignValidation.toAlignRatio(val);
 			if (_dispCont) _dispCont.invalidateSize();
 		}
-		public var _vAlignRatio:Number = AlignValidation.VALUE_NONE;
+		
+		[CamoInspectable(description = "Sets vertical alignment of inner display contents", type="vAlignRatio", defaultValue="none")]
 		public function set vAlign(val:String):void {
 			_vAlignRatio = AlignValidation.toVAlignRatio(val);
 			if (_dispCont) _dispCont.invalidateSize();
@@ -85,7 +88,7 @@
 				trace("AlignBehaviour activate() halt. targ as IDisplay is null!");
 				return;
 			}
-			AncestorListener.addEventListenerOf(_dispCont as IEventDispatcher, CamoDisplayEvent.DRAW, alignDisplayHandler, -1);
+			_dispCont.addEventListener( CamoDisplayEvent.DRAW, alignDisplayHandler, false, -1, true);
 		}
 		
 	
@@ -106,8 +109,8 @@
 		}
 		
 		public function destroy():void {
-			if (_dispCont) AncestorListener.removeEventListenerOf(_dispCont as IEventDispatcher, CamoDisplayEvent.DRAW, alignDisplayHandler);
-			//_dispCont.removeEventListener( CamoDisplayEvent.DRAW, alignDisplayHandler, false);
+			if (_dispCont == null) return;
+			_dispCont.removeEventListener(CamoDisplayEvent.DRAW, alignDisplayHandler);
 			_dispCont = null;
 		}
 		

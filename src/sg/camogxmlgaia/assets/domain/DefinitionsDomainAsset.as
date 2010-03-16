@@ -42,6 +42,11 @@
 			return _definitionGetter;
 		}
 		
+		override public function destroy():void {
+			super.destroy();
+			_definitionGetter = null;
+		}
+		
 
 		
 		override public function parseNode(page:IPageAsset):void {

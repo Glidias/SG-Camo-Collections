@@ -10,7 +10,7 @@
 	import sg.camogxmlgaia.api.IDisplayRenderAsset;
 	import sg.camogxmlgaia.api.IGXMLAsset;
 	import sg.camogxmlgaia.api.INodeClassAsset;
-	import sg.camogxmlgaia.api.INodeClassSpawner;
+	import sg.camo.interfaces.INodeClassSpawner;
 	import sg.camogxmlgaia.api.ISourceAsset;
 	
 	import sg.camogxml.render.GXMLRenderPacket;
@@ -27,7 +27,7 @@
 		/**
 		 * Dictionary of GXMLRenderPackets by id.
 		 */
-		private var _myGXMLRenders:Dictionary = new Dictionary();
+		private var _myGXMLRenders:Dictionary
 		
 		/**
 		 * Payload array
@@ -38,6 +38,11 @@
 		public function GXMLRenderBatchAsset() 
 		{
 			super();
+		}
+		
+		override public function init():void {
+			super.init();
+			_myGXMLRenders = new Dictionary();
 		}
 
 		public function getRenderById(id:String):IDisplayRender {
@@ -67,7 +72,9 @@
 		 * @return
 		 */
 		public function spawnClass(spawner:INodeClassSpawner):* {
+			
 			var xmlRenders:XML = xml;
+			
 			
 			var xmlList:XMLList = xml.*;
 			var len:int = xmlList.length();
@@ -109,6 +116,7 @@
 			}
 			if (gxmlRender is IRecursableDestroyable) (gxmlRender as IRecursableDestroyable).destroyRecurse(true)
 			else if (gxmlRender is IDestroyable) (gxmlRender as IDestroyable).destroy();
+			
 		}
 		
 	

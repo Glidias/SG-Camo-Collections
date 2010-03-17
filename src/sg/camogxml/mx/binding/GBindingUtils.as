@@ -40,6 +40,7 @@
 		
 		protected function getNewFunctionHost(host:Object, propertyString:String):IHostProxy {
 			var retHost:HostFunctionProxy =  new HostFunctionProxy( propertyString, host, _typeHelper);
+		
 			return retHost;
 		}
 		
@@ -83,10 +84,11 @@
 					str = arr[i];
 					suffix = str.charAt(str.length - 1);
 					
-					resultHost = suffix === ")" ?  getNewFunctionHost(null, str) : suffix === "]" ? getNewArrayHost(null, str) : host;
+					resultHost = suffix === ")" ?  getNewFunctionHost(resolveHost(host,arr,curHostIndex,i), str) : suffix === "]" ? getNewArrayHost(null, str) : host;
 					if (resultHost !== host) {
 						if (i != curHostIndex ) {
 							subHostProxy = resultHost;
+							
 							watcher = setupWatcher(host, arr.slice(curHostIndex, i), subHostProxy.rebind, null, commitOnly);
 						}
 						host = resultHost;
@@ -100,6 +102,22 @@
 			return watcher;
 		}
 		
+		public function getNewSiteProperty(oldSite:*, propertyDottedString:String):Array {
+			var chain:Array = stringToPropertyChain(propertyDottedString);
+			if (chain.length < 2) return [oldSite, propertyDottedString]
+			var newHost:* =  resolveHost(oldSite, chain.slice(0, chain.length - 1), 0, chain.length );
+			return [newHost, chain[chain.length - 1]];
+		}
+		
+		
+		protected function resolveHost(curHost:*, curArray:Array, curHostIndex:int, curIndex:int):* {
+			var i:int = curHostIndex;
+			while (i < curIndex && curHost) {
+				curHost = curHost[curArray[i]];
+				i++;
+			}
+			return curHost;
+		}
 		
 		protected function setupWatcher(host:Object, chain:Object, siteOrSetter:*, prop:String=null, commitOnly:Boolean = false):ChangeWatcher {
 			var watcher:ChangeWatcher =  prop != null ? BindingUtils.bindProperty(siteOrSetter, prop, host, chain, commitOnly) : BindingUtils.bindSetter(siteOrSetter, host, chain, commitOnly);

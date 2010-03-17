@@ -400,20 +400,6 @@ package camo.core.display
 
 
 
-		// TO Depreciate IAncestorListener methods..
-		
-		
-		public function $addEventListener(type : String, listener : Function, useCapture : Boolean = false, priority : int = 0, useWeakReference : Boolean = false) : void
-		{
-			super.addEventListener( type, listener, useCapture, priority, useWeakReference );
-		}
-
-
-	
-		public function $removeEventListener(type : String, listener : Function, useCapture : Boolean = false) : void
-		{
-			super.removeEventListener( type, listener, useCapture );
-		}
 
 	
 		override public function addChild(child : DisplayObject) : DisplayObject

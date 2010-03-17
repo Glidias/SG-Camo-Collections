@@ -16,7 +16,7 @@
 		{
 			super();
 			
-			$addEventListener(Event.ADDED_TO_STAGE, onInitialAddToStage, false , 1, true);
+			addEventListener(Event.ADDED_TO_STAGE, onInitialAddToStage, false , 1, true);
 		}
 		
 		public function get reflectClass():Class {
@@ -24,7 +24,7 @@
 		}
 		
 		protected function onInitialAddToStage(e:Event):void {
-			$removeEventListener(Event.ADDED_TO_STAGE, onInitialAddToStage);		
+			removeEventListener(Event.ADDED_TO_STAGE, onInitialAddToStage);		
 			// assumption made to retrieve ancestor child which must be at depth zero
 			var ancChild:DisplayObject = $getChildAt(0);
 			if (!ancChild || ancChild ===display || ancChild === maskShape) return;

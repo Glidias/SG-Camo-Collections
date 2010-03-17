@@ -37,9 +37,9 @@
 		 */
 		public function GPageDisplay() {
 			_pageContainer = this;
-			if (!_paged) $addEventListener(Event.ADDED_TO_STAGE, onAddedToStagePages, false , 0, true);
+			if (!_paged) addEventListener(Event.ADDED_TO_STAGE, onAddedToStagePages, false , 0, true);
 			
-			$addEventListener(TextEvent.LINK, hrefHandler, false , 0, true);
+			addEventListener(TextEvent.LINK, hrefHandler, false , 0, true);
 			
 			super();
 		}
@@ -90,7 +90,7 @@
 		 * @param	e
 		 */
 		protected function onAddedToStagePages(e:Event):void {
-			$removeEventListener(Event.ADDED_TO_STAGE, onAddedToStagePages, false);
+			removeEventListener(Event.ADDED_TO_STAGE, onAddedToStagePages, false);
 			for (var i:String in _pageArr) {
 				if (_curPageIndex == Number(i) ) continue;
 			//	if (_curPageName
@@ -292,8 +292,8 @@
 		override public function destroy():void {
 			super.destroy();
 			destroyPages();
-			if (!_paged) $removeEventListener(Event.ADDED_TO_STAGE, onAddedToStagePages);
-			$removeEventListener(TextEvent.LINK, hrefHandler);
+			if (!_paged) removeEventListener(Event.ADDED_TO_STAGE, onAddedToStagePages);
+			removeEventListener(TextEvent.LINK, hrefHandler);
 		}
 		
 

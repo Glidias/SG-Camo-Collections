@@ -116,7 +116,7 @@
 			ignoreWhite = true;
 		}
 		
-		[PostConstruct(name='gxml.display', name='gxml.behaviour', name='gxml.text', name='gxml.attribute')]
+		[Inject(name='gxml.display', name='gxml.behaviour', name='gxml.text', name='gxml.attribute')]
 		public function setCustomPropAppliers(dispPropApplier:IPropertyApplier=null,behPropApplier:IPropertyApplier=null,textPropApplier:IPropertyApplier=null,attributePropApplier:IPropertyApplier=null):void {
 			if (dispPropApplier) this.dispPropApplier = dispPropApplier;
 			if (behPropApplier)  this.behPropApplier  = behPropApplier;

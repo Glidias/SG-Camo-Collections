@@ -93,7 +93,7 @@
 				//if (node.attributes.id) localHash[node.attributes.id] = tryRender;
 				var render:DisplayObject = tryRender.rendered; 
 				
-				dispPropApplier.applyProperties(render, node.attributes);
+				attribPropApplier.applyProperties(render, node.attributes);  // only apply attributes
 				
 				node.attributes.iRenderDestroy  = tryRender as IDestroyable;
 				

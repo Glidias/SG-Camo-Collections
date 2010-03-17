@@ -17,7 +17,7 @@
 		public function GNavListDisplay(customDisp:Sprite=null) {
 			super(customDisp);
 			addBehaviour( new SelectionBehaviour() );
-			$addEventListener( SelectionEvent.SELECT, navSelectionHandler, false , 0, true);
+			addEventListener( SelectionEvent.SELECT, navSelectionHandler, false , 0, true);
 		}
 		
 		// -- IReflectClass
@@ -37,7 +37,7 @@
 		
 		override public function destroy():void {
 			super.destroy();
-			$removeEventListener( SelectionEvent.SELECT, navSelectionHandler, false);
+			removeEventListener( SelectionEvent.SELECT, navSelectionHandler, false);
 		}
 		
 		

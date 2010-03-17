@@ -63,16 +63,18 @@
 			var checkParamsString:String = propertyString.substring(openBracket +1, propertyString.indexOf(")"));
 			methodParams = checkParamsString.length > 0 ? checkParamsString.split(",") : null;
 			
-			
-			var listener:IEventDispatcher = host as IEventDispatcher;
 			_typeHelper = typeHelper;
 			_customEvent = customEvent;
 			
-			if (!listener || !host) return;
+			if (!host) return;
+			var listener:IEventDispatcher = host as IEventDispatcher;
 			
-			initListenInvokeOf(listener);
+			if (listener) {
+				initListenInvokeOf(listener);
+				listener.addEventListener(_eventToListenFor, invokeFunctionHandler, false , 0, true);
+			}
 			
-			listener.addEventListener(_eventToListenFor, invokeFunctionHandler, false , 0, true);
+			
 		}
 
 
@@ -113,7 +115,10 @@
 		
 		
 		override protected function $getProperty(name:*):* {
-			if (_host == null || name != _propertyString) return null;
+			if (_host == null || name != _propertyString) {
+			//	throw new Error('aaaaaaawrwa'+_propertyString + "," +_host);
+				return null;
+			}
 			
 			oldValue =  methodParams ? _noCache ? reinvoke(methodParams) : _host[methodName].apply(null, methodParams) : _host[methodName]();
 			
@@ -136,9 +141,8 @@
 		
 	
 		override public function rebind(newHost:Object):void {
-			newHost = newHost as IEventDispatcher;
 			
-			if (_host && _eventToListenFor) {
+			if ( (_host is IEventDispatcher) && _eventToListenFor) {
 				(_host as IEventDispatcher).removeEventListener(_eventToListenFor, invokeFunctionHandler);
 			}
 			

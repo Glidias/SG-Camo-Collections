@@ -22,8 +22,8 @@
 		public function CamoDivForm() 
 		{
 			super();
-			$addEventListener( Event.ADDED, addChildHandler, false , 0, true);
-			$addEventListener( Event.REMOVED, removeChildHandler, false , 0, true);
+			addEventListener( Event.ADDED, addChildHandler, false , 0, true);
+			addEventListener( Event.REMOVED, removeChildHandler, false , 0, true);
 		}
 		
 		override public function get reflectClass():Class {
@@ -33,8 +33,8 @@
 		
 		override public function destroy():void {
 			super.destroy();
-			$removeEventListener(Event.ADDED, addChildHandler);
-			$removeEventListener( Event.REMOVED, removeChildHandler);
+			removeEventListener(Event.ADDED, addChildHandler);
+			removeEventListener( Event.REMOVED, removeChildHandler);
 			for (var i:* in _dictFormElements) {
 				var chk:IDestroyable = i as IDestroyable;
 				if (chk != null) chk.destroy();
@@ -83,7 +83,7 @@
 		public function getURLVariables():URLVariables {	
 			var urlVars:URLVariables = new URLVariables();
 			for (var i:* in _dictFormElements) {
-				urlVars[i] = i.value;
+				urlVars[i.key] = i.value;
 			}
 			return urlVars;
 		}

@@ -531,7 +531,7 @@
 
 		/** @private */
 		protected function setupScrollBtn (targ:InteractiveObject):InteractiveObject {
-			var func:Function = targ.addEventListener; // targ is IAncestorSprite ? (targ as IAncestorSprite).$addEventListener : targ.addEventListener;
+			var func:Function = targ.addEventListener; // targ is IAncestorSprite ? (targ as IAncestorSprite).addEventListener : targ.addEventListener;
 			func(MouseEvent.MOUSE_DOWN, scrollButtonHandler, false, 0, true);
 			func(MouseEvent.CLICK, scrollButtonReleaseHandler, false, 0, true); 
 			if (targ is Sprite) (targ as Sprite).mouseChildren = false;

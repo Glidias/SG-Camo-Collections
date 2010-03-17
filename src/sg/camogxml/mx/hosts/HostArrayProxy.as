@@ -32,7 +32,7 @@
 		override protected function $getProperty(name:*):* {
 			if (_hostArray == null) return null;
 
-			var lookupIndex:int = _propertyString != name ? int(_propertyString.substr(1,_propertyString.length-1)) : _cachedLookupIndex;
+			var lookupIndex:int = _propertyString != name ? int(_propertyString.substr(1,_propertyString.length-2)) : _cachedLookupIndex;
 			return lookupIndex < _hostArray.length ? _hostArray[lookupIndex] : null;
 		}
 		

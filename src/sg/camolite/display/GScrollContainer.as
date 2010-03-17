@@ -56,7 +56,7 @@
 			_scrollBarH = scr;
 			_iScroll = _iScroll != null? _iScroll : new DefaultScrollProxy(this);
 			if (display == null) {
-				if (_scrollBarV ==null && _scrollBarH ==null)  $addEventListener(Event.ADDED_TO_STAGE, addedToStageScrollBars, false , 0, true);
+				if (_scrollBarV ==null && _scrollBarH ==null)  addEventListener(Event.ADDED_TO_STAGE, addedToStageScrollBars, false , 0, true);
 			}
 			else {
 				setupScrollbar(scr);
@@ -121,7 +121,7 @@
 			_scrollBarV = scr;
 			_iScroll = _iScroll != null? _iScroll : new DefaultScrollProxy(this);
 			if (display == null) {
-				if (_scrollBarV ==null && _scrollBarH ==null)  $addEventListener(Event.ADDED_TO_STAGE, addedToStageScrollBars, false , 0, true);
+				if (_scrollBarV ==null && _scrollBarH ==null)  addEventListener(Event.ADDED_TO_STAGE, addedToStageScrollBars, false , 0, true);
 			}
 			else {
 				scr.scrollTarget = this;
@@ -146,7 +146,7 @@
 		
 		/** @private */	
 		protected function addedToStageScrollBars(e:Event):void {
-			$removeEventListener(Event.ADDED_TO_STAGE, addedToStageScrollBars);
+			removeEventListener(Event.ADDED_TO_STAGE, addedToStageScrollBars);
 			
 			if (_scrollBarV != null) setupScrollbar(_scrollBarV);
 			if (_scrollBarH != null) setupScrollbar(_scrollBarH);
@@ -156,7 +156,7 @@
 		override public function destroy():void {
 			super.destroy();
 			if (_iScroll != null) {
-				$removeEventListener(Event.ADDED_TO_STAGE, addedToStageScrollBars);
+				removeEventListener(Event.ADDED_TO_STAGE, addedToStageScrollBars);
 				_iScroll.destroy();
 			}
 			if (scrollBarV != null) {

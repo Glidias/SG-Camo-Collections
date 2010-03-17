@@ -3,8 +3,8 @@
 	import sg.camo.interfaces.IPropertyMapCache;
 	import sg.camo.interfaces.ITypeHelper;
 	/**
-	 * GXML adaptor globals to set before running anything else under CamoGXML's static utility
-	 * package. Technically, such dependencies could be set through some dependency injector
+	 * GXML adaptor globals to set before running anything else under CamoGXML's static utlities. 
+	 * Technically, such dependencies could be set through some dependency injector
 	 * utility, but for simplicity's sake, I decided to provide static setters instead.
 	 * 
 	 */
@@ -31,12 +31,12 @@
 		}	
 	
 		public static function get typeHelper():ITypeHelper {
-			if (!_typeHelper) throw new Error("GXMLGlobals.typeHelper retrieval failed. Need to set!");
+			if (!_typeHelper) trace("GXMLGlobals.typeHelper retrieval failed. Need to set!");
 			return _typeHelper;
 		}
 		
 		public static function get propertyMapCache():IPropertyMapCache {
-			if (!_propertyMapCache) throw new Error("GXMLGlobals.propertyMapCache retrieval failed. Need to set!");
+			if (!_propertyMapCache) trace("GXMLGlobals.propertyMapCache retrieval failed. Need to set!");
 			return _propertyMapCache;
 		}
 

@@ -114,9 +114,9 @@
 			maskShape.graphics.drawRect(0, 0, 32, 32);
 			$addChild(maskShape);
 			
-			$addEventListener(OPEN, openHandler, false , 0, true);
-			$addEventListener(CLOSE, closeHandler, false , 0, true);
-			$addEventListener(TOGGLE, toggleOpenCloseHandler, false , 0, true);
+			addEventListener(OPEN, openHandler, false , 0, true);
+			addEventListener(CLOSE, closeHandler, false , 0, true);
+			addEventListener(TOGGLE, toggleOpenCloseHandler, false , 0, true);
 		}
 		
 		
@@ -505,20 +505,20 @@
 
 		override protected function activateOverflowHidden():void {
 			_measureMode = ANCESTOR_ONLY;
-			if (hasEventListener(Event.SCROLL)) $removeEventListener(Event.SCROLL, onScroll);
+			if (hasEventListener(Event.SCROLL)) removeEventListener(Event.SCROLL, onScroll);
 		}
 		override protected function clearOverflow():void {
 			_measureMode = UNION_ALL;
-			if (hasEventListener(Event.SCROLL)) $removeEventListener(Event.SCROLL, onScroll);
+			if (hasEventListener(Event.SCROLL)) removeEventListener(Event.SCROLL, onScroll);
 		}
 		override protected function activateOverflowScroll():void {
 			_measureMode = UNION_DYNAMIC_SCROLL;
-			$removeEventListener(Event.SCROLL, onScroll);
-			$addEventListener(Event.SCROLL, onScroll, false , 0, true);
+			removeEventListener(Event.SCROLL, onScroll);
+			addEventListener(Event.SCROLL, onScroll, false , 0, true);
 		}
 		override protected function activateOverflowAuto():void {
 			_measureMode = UNION_DYNAMIC_AUTO;
-			if (hasEventListener(Event.SCROLL)) $removeEventListener(Event.SCROLL, onScroll);
+			if (hasEventListener(Event.SCROLL)) removeEventListener(Event.SCROLL, onScroll);
 		}
 
 		
@@ -659,10 +659,10 @@
 		
 		override public function destroy():void {
 			super.destroy();
-			if (hasEventListener(Event.SCROLL)) $removeEventListener(Event.SCROLL, onScroll);
-			$removeEventListener(OPEN, openHandler);
-			$removeEventListener(CLOSE, closeHandler);
-			$removeEventListener(TOGGLE, toggleOpenCloseHandler);
+			if (hasEventListener(Event.SCROLL)) removeEventListener(Event.SCROLL, onScroll);
+			removeEventListener(OPEN, openHandler);
+			removeEventListener(CLOSE, closeHandler);
+			removeEventListener(TOGGLE, toggleOpenCloseHandler);
 		}
 		
 	}

@@ -1,12 +1,11 @@
-Powered in various ways by the Flash Camouflage display framework created by Jesse Freeman, http://flashcamo.flashartofwar.com/ , SG Camo Collections is a personal suite branch of display classes, UI, behaviours and interfaces developed specifically for AS3/Flash development.
+Running under a slightly modified code-base of the legacy Flash Camouflage (Version 2) display framework created by Jesse Freeman, http://flashcamo.flashartofwar.com/ , SG Camo Collections is a personal suite branch of display classes, UI, behaviours and interfaces developed specifically for AS3/Flash development.
 
 Here's the current run-down of what you'll find in the src code:
 
 ////////////////////////////////////////
 camo.core
 ////////////////////////////////////////
-Jesse Freeman's core set of Flash-Camouflage classes (mainly the download package from Flash Camouflage's SVN repository on Google Code). 
-http://code.google.com/p/flash-camouflage
+Jesse Freeman's core set of legacy Flash-Camouflage version 2 classes.
 
 Contains some minor modifications/additions to Jesse's code-base and also shares the various interface signatures used under the core SG-Camo package.
 
@@ -31,23 +30,19 @@ sg.camoextras
 ////////////////////////////////////////
 All other miscelleanous stuffs, utilities and bonuses go here.
 
-////////////////////////////////////////
-sg.camogaia
-////////////////////////////////////////
-Any misc. Camo/SG-Camo mplementation for the Gaia Flash Framework goes here.
 
-
-IN DEVELOPMENT:
-////////////////////////////////////////
+/////////////////////////////////////
 sg.camogxml
 ////////////////////////////////////////
-Currently, the GXML (sG-XML markup) rendering/factory standard is being reworked to allow more versatility in allowing one to render and layout all sorts of Flash display objects through basic XML markup with the ability to compose and inject various behaviours (layout, skin and user-interaction) into each display entity in a non-prescriptive (and cross-platform) way. The basic sg.camogxml.render package allows cross-platform integration with other frameworks, including your own application, if you somehow need a comprehensive XML markup renderer (and SEO content injector) to display Flash content directly.
+Currently, the GXML (sG-XML markup) rendering/factory standard has been reworked to allow more versatility in allowing one to render and layout all sorts of Flash display objects through basic XML markup with the ability to compose and inject various behaviours (layout, skin and user-interaction) into each display entity in a non-prescriptive (and cross-platform) way. The basic sg.camogxml.render package allows cross-platform integration with other frameworks, including your own application, if you somehow need a comprehensive XML markup renderer (and SEO content injector) to display Flash content directly.
 
-Generally, this framework tends to work better towards the more advanced CamoDisplay/BoxModel classes developed by Jesse Freeman which involves manually skinning displays via CSS-like properties (in which a document-based markup language and accompanying stylesheet could help), but GXML can also include your basic native Flash display classes, classes from SG-CamoLite, and even your own display-based classes from your own local Flash libraries.
+Generally, this framework tends to work better towards the more advanced CamoDisplay/BoxModel classes developed by Jesse Freeman which involves manually skinning displays via CSS-like properties (in which a document-based markup language and accompanying stylesheet could help), but GXML can also include your basic native Flash display classes.
 
 Generally, the code in this GXML package is geared more towards dynamically creating instances and supplying user-defined dependencies via XML markup with the help of Camo's property injection system (and some of SG-CamoGXML's in-house dependency injection utilities).
+
+Under the sg.camogxml.display branch, there's a set of extended CamoDisplays to support additional div layouting capabilities in a pseudo-CSS-like manner.
 
 ////////////////////////////////////////
 sg.camogxmlgaia
 ////////////////////////////////////////
-Codenamed the "CGG Framework", this is basically GXML running on top of the Gaia Flash Framework, and obviously powered by SG-Camo/Camo-Core, in general. The plan? An extendable site that you can develop completely with just a markup language alone, with the ability to introduce new reusable modules, packages, assets and skins across different page .swf domains coupled with seamless Gaia SEO integration, dependency injection, and lifecycle management of instances per page. The objective? Basic site developmenent is even possible with just a CGG pre-compiled shell, Gaia's site.xml, and your assets consisting of custom GXML markup, Flash library assets, or any other accompanying behaviour classes or additional modules you may intend to load later within your site tree and unload once you're done. 
+Codenamed the "CGG Framework", this is basically GXML running on top of the Gaia Flash Framework, and obviously powered by SG-Camo/Camo-Core, in general. The roadmap? An extendable site that you can develop completely with just a markup language alone, with the ability to introduce new reusable modules, packages, assets and skins across different page .swf domains coupled with seamless Gaia SEO integration, dependency injection, and lifecycle management of instances per page. The objective? Basic site developmenent is even possible with just a CGG pre-compiled shell, Gaia's site.xml, and your assets consisting of custom GXML markup, Flash library assets, or any other accompanying behaviours. An online builder application to help construct the GXML (graphical xml/css) markup for you through a GUI, is also under consideration. 

@@ -137,21 +137,23 @@ package camo.core.display
 			return _height;
 		}
 		
-		public function set $__width(val:Number):void {
+		public function set __width(val:Number):void {
 			_width = val;
 			_bubblingDraw = true;
 			invalidate();
 		}
-		public function get $__width():Number {
-			return _width;
-		}
+	
 		
-		public function set $__height(val:Number):void {
+		public function set __height(val:Number):void {
 			_height = val;
 			_bubblingDraw = true;
 			invalidate();
 		}
-		public function get $__height():Number {
+
+		public function get displayWidth():Number {
+			return _width;
+		}
+		public function get displayHeight():Number {
 			return _height;
 		}
 		
@@ -422,7 +424,7 @@ package camo.core.display
 
 		override public function addChildAt(child : DisplayObject, index : int) : DisplayObject
 		{
-			var retChild:DisplayObject = display.addChildAt( child, 0 );
+			var retChild:DisplayObject = display.addChildAt( child, index );
 			dispatchEvent( new CamoChildEvent( CamoChildEvent.ADD_CHILD, child ) );
 			_bubblingDraw = true;
 			invalidate();

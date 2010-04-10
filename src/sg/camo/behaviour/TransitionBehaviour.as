@@ -1,5 +1,6 @@
 ﻿package sg.camo.behaviour 
 {
+	import flash.display.DisplayObject;
 	import flash.events.Event;
 	import flash.events.IEventDispatcher;
 	import sg.camo.behaviour.AbstractProxyBehaviour;
@@ -95,7 +96,9 @@
 		
 	
 		protected function myBinding(str:String):* {
-			if (str === "{target}") return _tweenTarget;
+			if (str === "{target}") { 
+				return _tweenTarget;
+			}
 			return null;
 		}
 		
@@ -105,7 +108,12 @@
 
 		
 		protected function transitionInHandler(e:Event):void {
+			
 			_curTransition = transitionModule.transitionInPayload;
+			if (_curTransition == null) {
+				throw new Error("No transition-in payload found for transitionInHandler");	
+			}
+			
 			_isIn = true;
 			
 			
@@ -158,7 +166,12 @@
 			if (nodeClassSpawner) nodeClassSpawner.injectInto(this);
 			
 			transitionModule  = getNewTransitionModule();
-			if (propApplier && transitionModule) propApplier.applyProperties(transitionModule, properties);
+			if (transitionModule == null) throw new Error("Can't spawn transition module!");
+			
+			//if (propApplier && transitionModule) { 
+			trace(propApplier);
+				propApplier.applyProperties(transitionModule, properties);
+			//}
 		
 			
 			targDispatcher.addEventListener(eventIn, transitionInHandler, false, 0, true);
@@ -174,6 +187,7 @@
 					payloadToManager = new TransitionModulePayload(this, true, true);
 				}
 				else if (registerIn) {
+					
 					payloadToManager = new TransitionModulePayload(this, true, false);
 				}
 				else if (registerOut) {
@@ -183,7 +197,20 @@
 			}
 			
 
-			if (renderNow) targDispatcher.dispatchEvent( new Event(eventIn) );
+			if (renderNow) {
+				if (targDispatcher is DisplayObject) {
+					var disp:DisplayObject = targDispatcher as DisplayObject;
+					if (disp.stage) {
+						disp.dispatchEvent(new Event(eventIn));
+					}
+					else disp.addEventListener(Event.ADDED_TO_STAGE, deferRenderNow, false, 0, true);
+				}
+				else targDispatcher.dispatchEvent( new Event(eventIn) );
+			}
+		}
+		
+		private function deferRenderNow(e:Event):void {
+			targDispatcher.dispatchEvent( new Event(eventIn) );
 		}
 		
 		protected function provideTransitionModule(e:TransitionModuleEvent):void {
@@ -213,8 +240,10 @@
 		
 		// -- Proxy
 		
-		override protected function $setProperty(name : *, value : *):void {
+		override protected function $setProperty(name : * , value : * ):void {
+		
 			properties[name] = value;
+			
 		}
 		
 		override protected function $getProperty(name : *):* {

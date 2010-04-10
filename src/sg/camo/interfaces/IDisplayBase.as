@@ -19,20 +19,20 @@
 	public interface IDisplayBase 
 	{
 		/**
-		 * Extendable getters
+		 * 1st level class getters/setters
 		 */
+		function set __width(val:Number):void;
+		function set __height(val:Number):void;
 		function get __width():Number;
 		function get __height():Number;
 		
 		/**
-		 * Items denoted as $ refer to ancestor implementation getters/setters
-		 * used specifically for tweening, which should remain unextended.
+		 * Overwritablr widht/height getters for layouts/drawing
 		 */
-		function set $__width(val:Number):void;
-		function get $__width():Number;
+		function get displayWidth():Number;
+		function get displayHeight():Number;
 		
-		function set $__height(val:Number):void;
-		function get $__height():Number;
+		
 		
 	}
 	

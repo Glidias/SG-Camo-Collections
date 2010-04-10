@@ -24,11 +24,9 @@
 	
 	public class GSListTransition extends GSTransition
 	{
-		public var forEachEaseIn:Function = null;
-		public var forEachEaseOut:Function = null;
+
 		public var forEachDuration:Number = .3;
 		public var stagger:Number = 0;
-
 		/**
 		 * Whether the container must tween in/out first before the items transition in, or do it concurrently.
 		 */
@@ -84,6 +82,10 @@
 			disp.addEventListener(listenRemove, removeItemHandler, false, 0, true );
 		}
 		
+		
+
+		
+		
 		public function get listenAdd():String {
 			return $listenAdd;
 			
@@ -106,10 +108,7 @@
 			_isFrom = false;
 		}
 		
-		public function set forEachEase(val:Function):void {
-			forEachEaseIn = val;
-			forEachEaseOut = val;
-		}
+
 		
 		/** 
 		 * Appends item to timeline of transition list
@@ -121,7 +120,6 @@
 				
 				var twp:TweenPacket = _isFrom ? new TweenPacket( targetToAdd, forEachDuration, reverseVars(_forEachVars), _tweenClass) :  new TweenPacket(targetToAdd, forEachDuration, _forEachVars, _tweenClass);
 				listItemPacketTimeline.push(twp);
-		
 				dictItems[targetToAdd] = twp;
 			}
 			
@@ -169,6 +167,7 @@
 		}
 		
 		override protected function checkIsReversible(tw:TweenCore):Boolean {
+			
 			var ret:Boolean = super.checkIsReversible(tw);
 			if (ret) timeline.clear(timeline.getChildren(false, true, true, _curTween.totalDuration - _curTween.totalTime))
 			return ret;
@@ -177,17 +176,20 @@
 		// -- ITransitionModule
 		
 		override public function get transitionInPayload():* {
+			
 			var len:int = listItemPacketTimeline.length;
+			
 			if (len > 0) {
-					
+						
 				for (var i:int = 0; i < len; i++) {
 					var packet:TweenPacket = listItemPacketTimeline[i];
 					delete dictItems[packet.target]
 					timeline.append( packet.tween, stagger );
 					
 				}
+				listItemPacketTimeline = [];
 			}
-			listItemPacketTimeline = [];
+			
 
 			if (_oldTween) {
 				timeline.remove(_oldTween);

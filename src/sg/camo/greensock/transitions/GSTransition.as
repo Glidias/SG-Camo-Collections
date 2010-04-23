@@ -18,19 +18,26 @@
 		protected var _inVars:Object;
 		protected var _outVars:Object;
 		protected var _initVars:Object;
+		protected var _outVarsInterrupt:Object;
 		
 		protected var _pluginVars:GSPluginVars;
 		
 		public var durationIn:Number = .3;
 		public var durationOut:Number = .3;
-		public var reverseOnInterrupt:Boolean = false;
+
+		public var durationOutInterrupt:Number = 0;
 		public var reverseOnOut:Boolean = false;
 		
-		public var easeIn:Function = null;
-		public var easeOut:Function = null;
+		public var reverseOnInterrupt:Boolean = false; // to be deperciate
+
 		
 		protected var _curTween:TweenCore;
 		protected var _tweenClass:Class;
+		
+
+		
+		
+	
 		
 		protected var _restoreVars:Object = { };
 		
@@ -44,34 +51,61 @@
 		{
 			if (target == null) return;
 			_target = target;
+			
 			_pluginVars = pluginVars;
 			_tweenClass = tweenClass || TweenLite;
+			
 		}
 		
 		// -- ITransitionModule
 		
 		public function get transitionInPayload():* {
+			
 			if (_initVars) (new _tweenClass(_target, .1, CreateGSTweenVars.createVarsFromObject(_initVars, _pluginVars) ) as TweenCore).complete();
 
 
 			
 			if (checkIsReversible(_curTween)) return _curTween;
-			_curTween =  _inVars ? _inVars as TweenCore || createTweenFromVars(_inVars, durationIn, easeIn) : null;
+			_curTween = createTweenFromVars(_inVars || {}, durationIn);  // _inVars ? _inVars as TweenCore ||  : null
+		
 			return _curTween;
 		}
 		
 
+
+		
 		public function get transitionOutPayload():* { 
-			if (checkIsReversible(_curTween)) return _curTween;
+			//if (checkIsReversible(_curTween)) return _curTween;
+			if (_curTween == null) {
+				if (_outVars) _curTween = createTweenFromVars(_outVars, durationOut);
+				else return null;
+			}
+			var hasEnded:Boolean =  _curTween.totalDuration == _curTween.totalTime;
 			
 			if ( reverseOnOut) {
-				if (_curTween.totalTime > 0 && _curTween.totalDuration == _curTween.totalTime) {
-					_curTween.reverse();
+				
+				//if (_curTween.totalTime > 0 ) { //&& _curTween.totalDuration == _curTween.totalTime
+					
+					_curTween.pause();
+					
+					_curTween =  new _tweenClass(_curTween, durationOutInterrupt || _curTween.totalTime, { currentTime:0 } ); 
+					if (hasEnded && _outVars) {
+						for (var i:String in _outVars) {
+							_curTween.vars[i] = _outVars[i];
+						}
+					}
+					else if (_outVarsInterrupt) {
+						for (i in _outVarsInterrupt ) {
+							
+							_curTween.vars[i] = _outVarsInterrupt[i];
+						}
+					}
+					
 					return _curTween;
-				}
+				//}
 			}
 			
-			_curTween =  _outVars ? createTweenFromVars(_outVars, durationOut, easeOut) : null;
+			_curTween =  !hasEnded && _outVarsInterrupt ?  createTweenFromVars(_outVarsInterrupt, durationOutInterrupt || _curTween.totalTime) : _outVars ? createTweenFromVars(_outVars, durationOut) : null;
 		
 			return _curTween;	
 		}
@@ -91,14 +125,13 @@
 		
 		// -- Protected helpers
 		
-		protected function createTweenFromVars(vars:Object, duration:Number, ease:Function):TweenCore {
-			if (!vars.ease) vars.ease = ease;
+		protected function createTweenFromVars(vars:Object, duration:Number):TweenCore {
 			return new _tweenClass(_target, duration, vars) as TweenCore;
 		}
 		
 
 		
-		/** @private 
+		/** @private  To be depeciated
 		*/
 		protected function checkIsReversible(tw:TweenCore):Boolean {
 			if (tw==null || !reverseOnInterrupt) return false;
@@ -129,10 +162,7 @@
 			_restoreVars = CreateGSTweenVars.createVarsFromObject(obj, _pluginVars);
 		}
 		
-		public function set ease(func:Function):void {
-			easeIn = func;
-			easeOut = func;
-		}
+
 		
 		public function set duration(val:Number):void {
 			durationIn = val;
@@ -142,7 +172,10 @@
 		public function set fromVars(obj:Object):void {
 			var obj:Object = CreateGSTweenVars.createVarsFromObject(obj, _pluginVars);
 		
-			_inVars = _tweenClass["from"](_target, durationIn, obj );
+			//_inVars = _tweenClass["from"](_target, durationIn, obj );
+			_inVars = obj;
+			_inVars.runBackwards = true;
+			_inVars.immediateRender = true;
 		}
 		
 		public function set setVars(obj:Object):void {
@@ -158,6 +191,11 @@
 		public function set outVars(obj:Object):void {
 			_outVars = CreateGSTweenVars.createVarsFromObject( obj, _pluginVars );
 		}
+		
+		public function set outVarsInterrupt(obj:Object):void {
+			_outVarsInterrupt = CreateGSTweenVars.createVarsFromObject( obj, _pluginVars );
+		}
+			
 				
 		
 		

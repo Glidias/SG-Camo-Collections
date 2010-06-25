@@ -71,7 +71,7 @@
 			
 			if (listener) {
 				initListenInvokeOf(listener);
-				listener.addEventListener(_eventToListenFor, invokeFunctionHandler, false , 0, true);
+				if (_eventToListenFor!=null) listener.addEventListener(_eventToListenFor, invokeFunctionHandler, false , 0, true);
 			}
 			
 			
@@ -106,7 +106,15 @@
 			}
 				
 			// There should be checks for XML search case.. or special cases...
-			_eventToListenFor = _customEvent  ||  methodXML.metadata.(@name == "Bindable")[0].arg[0].@value;
+			_eventToListenFor = _customEvent  || tryMetaEvent( methodXML );
+		}
+		
+		private function tryMetaEvent(methodXML:XML):String {
+			var tryList:XMLList =  methodXML.metadata.(@name == "Bindable");
+			if (!tryList.length()) return null;
+			tryList = tryList[0].arg;
+			if (!tryList.length()) return null;
+			return tryList[0].@value;
 		}
 		
 		protected function invokeFunctionHandler(e:Event):void {

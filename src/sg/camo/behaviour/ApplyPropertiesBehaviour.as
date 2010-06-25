@@ -1,4 +1,4 @@
-﻿package sg.camo.behaviour 
+package sg.camo.behaviour 
 {
 	import sg.camo.interfaces.IPropertyApplier;
 	import sg.camo.interfaces.IPseudoBehaviour;
@@ -9,7 +9,8 @@
 	 */
 	public class ApplyPropertiesBehaviour extends AbstractProxyBehaviour implements IPseudoBehaviour
 	{
-		public function set pseudoState(str:String):void { };
+		public var _pseudoState:String;
+		public function set pseudoState(str:String):void {  _pseudoState = str };
 		
 		
 		protected var _properties:Object = { };
@@ -20,6 +21,10 @@
 		public function ApplyPropertiesBehaviour() 
 		{
 			super(this);
+		}
+		
+		private function getApplyTarget(targ:*):* {
+			return FindTarget.getPseudoTarget(targ, _pseudoState);
 		}
 		
 		[Inject(name="Proxy.properties")]
@@ -44,7 +49,7 @@
 		}
 		
 		override public function activate(targ:*):void {
-			_propApplier.applyProperties(targ, _properties);
+			_propApplier.applyProperties(getApplyTarget(targ), _properties);
 		}
 		
 

@@ -163,7 +163,6 @@
 			_disp.removeEventListener(Event.ADDED_TO_STAGE, onAddedToStageInit);
 			_dispCont = _disp.parent is IDisplay ? _disp.parent  : _disp.parent.parent is IDisplay ? _disp.parent.parent : _disp.parent;
 			_dispBase = _dispCont as IDisplayBase;
-			trace(_dispCont.name);
 			initAlignToParent();
 		}
 		

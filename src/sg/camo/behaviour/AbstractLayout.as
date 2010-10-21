@@ -5,6 +5,7 @@
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
 	import flash.errors.IllegalOperationError;
+	import flash.events.Event;
 	import sg.camo.interfaces.IBehaviour;
 	
 	/**
@@ -70,7 +71,7 @@
 		protected function removeChildHandler(e:CamoChildEvent):void {
 			
 		}
-		protected function reDrawHandler(e:CamoDisplayEvent):void {
+		protected function reDrawHandler(e:Event):void {
 			
 		}
 		

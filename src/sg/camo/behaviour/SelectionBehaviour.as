@@ -108,11 +108,13 @@
 		 *  <br/>Finally dispatches a SelectionEvent.SELECT event once successfully done.
 		 * @param	targ	(Required) A DisplayObject or some valid IEventDispatcher target.<br/>
 		 * (Recomended) A valid ISelectable instance. 
+		 * @param  toDispatch   Set this to false to prevent sending a "SelectionEvent.SELECT" notification. 
+		 * 						(ie. Perform selection action only)
 		 * @see sg.camo.interfaces.ISelectable
 		 * @return	Whether selection was successful or not
 		 */
-		public function doSelection (targ:*):Boolean {
-			if (!targ is IEventDispatcher) {
+		public function doSelection (targ:*, toDispatch:Boolean=true):Boolean {
+			if (!(targ is IEventDispatcher)) {
 				trace("SelectionBehaviour doSelection() halt!  targ isn't IEventDispatcher or null");
 				return false;
 			}
@@ -126,7 +128,7 @@
 			//else trace ("Warning: SelectionBehaviour doSelection();  targ isn't ISelectable");
 			_curSelected = targ as IEventDispatcher;
 			_curSelected.dispatchEvent( new Event(GDisplayNotifications.SELECTED) );
-			dispatchSelection(targ);
+			if (toDispatch) dispatchSelection(targ);
 			return true;
 		}
 	}

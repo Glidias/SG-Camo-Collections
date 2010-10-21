@@ -16,6 +16,8 @@
 		 */
 		public var params:Object;
 		public static const SUBMIT:String = "FormEvent.SUBMIT";
+		public static const ERROR:String = "error";
+		public static const VALID:String = "valid";
 		
 		/**
 		 * 
@@ -29,6 +31,17 @@
 		}
 		override public function clone():Event {
 			return new FormEvent(type, params, bubbles);
+		}
+		
+		public function traceParams():void {
+			if (params == null) trace("FormEvent::" + type + "Empty params");
+			else {
+				var str:String = "FormEvent::"+type+"\n";
+				for (var i:String in params) {
+					str+= i+": "+params[i]+"\n";
+				}
+				trace(str);
+			}
 		}
 		
 		

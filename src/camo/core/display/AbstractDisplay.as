@@ -35,7 +35,6 @@ package camo.core.display
 	import flash.geom.Point;
 	import sg.camo.interfaces.IDisplayBase;
 
-	import camo.core.events.CamoDisplayEvent;
 	import camo.core.events.CamoChildEvent;
 	
 	//import flash.display.BitmapData;   // BitmapData unnecessary for AbstractDisplay
@@ -396,7 +395,7 @@ package camo.core.display
 		 */
 		protected function draw() : void
 		{
-			dispatchEvent( new CamoDisplayEvent( CamoDisplayEvent.DRAW, _bubblingDraw ) );
+			dispatchEvent( new Event( "draw", _bubblingDraw ) );
 		}
 
 
@@ -492,11 +491,12 @@ package camo.core.display
 	
 		override public function removeChildAt(index : int) : DisplayObject
 		{
-			var retChild:DisplayObject = display.removeChildAt( index )
-			dispatchEvent( new CamoChildEvent( CamoChildEvent.REMOVE_CHILD, retChild) );
+			var child:DisplayObject = getChildAt(index);
+			dispatchEvent( new CamoChildEvent( CamoChildEvent.REMOVE_CHILD,child  ) );
+			display.removeChild( child )
 			_bubblingDraw = true;
 			invalidate();
-			return retChild;
+			return child;
 		}
 
 

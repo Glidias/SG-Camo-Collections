@@ -9,6 +9,7 @@
 	import sg.camo.interfaces.IListItem;
 	import sg.camo.interfaces.ISelectable;
 	import sg.camo.behaviour.FormFieldBehaviour;
+	import sg.camo.interfaces.ISelectioner;
 	import sg.camolite.display.GDropDown;
 	
 	/**
@@ -95,8 +96,16 @@
 			_formFieldBehaviour.resetValue();
 		}
 	
+
 		public function set value (val:String):void {
-			text = val;
+			var trySelectioner:ISelectioner = selectioner;
+			if (trySelectioner) {
+				trySelectioner.selection = val;
+			}
+			else text = val;
+		}
+		protected function get selectioner():ISelectioner {
+			return display as ISelectioner;
 		}
 		public function get value ():String {
 			return _curSelected is IFormElement ? (_curSelected as IFormElement).value : _curSelected is IListItem ? (_curSelected as IListItem).id : _curSelected.name;

@@ -25,6 +25,10 @@
 		public var onUpdateParams:Array;
 		public var onComplete:Function;
 		public var onCompleteParams:Array;
+		public var onStart:Function;
+		public var onStartParams:Array;
+		
+	
 		
 		
 		/** Defaulted to <code>Strong.easeOut</code>. */
@@ -44,7 +48,7 @@
 			var $onUpdateParams:Array = onUpdate!=null ? onUpdateParams : [scrollEvent];
 			var $onComplete:Function = onComplete!=null ? onComplete : scrollContainer.dispatchEvent;
 			var $onCompleteParams:Array = onComplete!=null ? onCompleteParams : [scrollEvent];
-			TweenLite.to( scrollContent, duration, { x:getDestScrollH(ratio), ease:ease, onUpdate:$onUpdate, onUpdateParams:$onUpdateParams, onComplete:$onComplete, onCompleteParams:$onCompleteParams } );
+			TweenLite.to( scrollContent, duration, { x:getDestScrollH(ratio), ease:ease, onStart:onStart, onStartParams:onStartParams, onUpdate:$onUpdate, onUpdateParams:$onUpdateParams, onComplete:$onComplete, onCompleteParams:$onCompleteParams } );
 		}
 		override public function set scrollV(ratio:Number):void {
 			var duration:Number = ratio != 0 ? openDuration : closeDuration;
@@ -52,7 +56,7 @@
 			var $onUpdateParams:Array = onUpdate!=null ? onUpdateParams : [scrollEvent];
 			var $onComplete:Function = onComplete!=null ? onComplete : scrollContainer.dispatchEvent;
 			var $onCompleteParams:Array = onComplete!=null ? onCompleteParams : [scrollEvent];
-			TweenLite.to( scrollContent, duration, { y:getDestScrollV(ratio), ease:ease, onUpdate:$onUpdate, onUpdateParams:$onUpdateParams, onComplete:$onComplete, onCompleteParams:$onCompleteParams } );
+			TweenLite.to( scrollContent, duration, { y:getDestScrollV(ratio), ease:ease, onUpdate:$onUpdate, onStart:onStart, onStartParams:onStartParams, onUpdateParams:$onUpdateParams, onComplete:$onComplete, onCompleteParams:$onCompleteParams } );
 		}
 		
 		override public function resetScroll():void {

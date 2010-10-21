@@ -1,7 +1,6 @@
 ﻿package sg.camo.behaviour 
 {
 	import camo.core.display.IDisplay;
-	import camo.core.events.CamoDisplayEvent;
 	import flash.display.DisplayObject;
 	import flash.events.Event;
 	import flash.events.IEventDispatcher;
@@ -26,7 +25,7 @@
 		private static function onNextFrameInvalidate(e:Event):void {
 			var dispatcher:IEventDispatcher = e.currentTarget as IEventDispatcher;
 			dispatcher.removeEventListener(Event.ENTER_FRAME, onNextFrameInvalidate);
-			if (e.currentTarget.stage) dispatcher.dispatchEvent( new CamoDisplayEvent(CamoDisplayEvent.DRAW, true) );
+			if (e.currentTarget.stage) dispatcher.dispatchEvent( new Event("true", true) );
 		}
 		
 		

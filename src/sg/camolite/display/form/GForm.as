@@ -54,6 +54,15 @@
 			_beh.activate(this);
 		}
 		
+		public function getFormElement(id:String):IFormElement {
+			return _beh.getFormHash()[id] as IFormElement || failedElement(id);
+		}
+		
+		protected function failedElement(id:String):IFormElement {
+			throw new Error("Failed to retrieve form element by id:" + id);
+			return null;
+		}
+		
 		
 		/**
 		 * [optional] <b>[Staged instance]</b> to automatically set up submit button.

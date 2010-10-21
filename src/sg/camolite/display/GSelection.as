@@ -45,6 +45,7 @@
 		{	
 			super();
 			addEventListener (GDisplayNotifications.SELECT, selectionHandler, false, 1, true);
+			
 		}
 		
 		// -- IReflectClass

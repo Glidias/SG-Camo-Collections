@@ -4,11 +4,15 @@
 	import flash.text.TextField;
 	import sg.camo.interfaces.IDestroyable;
 	import sg.camo.interfaces.IBehaviour;
+	import sg.camo.interfaces.IForm;
 	import sg.camo.interfaces.IFormElement;
 	import sg.camo.interfaces.IForm;
 	import flash.display.DisplayObjectContainer;
 	import flash.net.URLVariables;
 	import flash.text.TextFieldType;
+	import sg.camo.interfaces.ISelectable;
+	import sg.camo.interfaces.ISelectioner;
+	import sg.camo.interfaces.ITextField;
 	
 	
 	/**
@@ -77,8 +81,10 @@
 		}
 		
 		/**
-		 * Activates a sole DisplayObjectContainer instance to run a search of all input fields and IFormElements 
-		 * in it's display list to register them.
+		 * Activates a sole DisplayObjectContainer instance to run a search of all avaialble input fields and IFormElements 
+		 * to register them. Also registers ISelectable instances as checkboxes and ISelectioner instances as radio groups.
+		 * @see sg.camo.interfaces.ISelectioner
+		 * @see sg.camo.interfaces.ISelectable
 		 * 
 		 * @param	targ	A valid DisplayObjectContainer
 		 */
@@ -99,15 +105,23 @@
 				if (spr != null) spr.tabEnabled = false;
 				
 				if (formElement == null) {
-					if (chkChild is TextField) {
-						if ( (chkChild as TextField).type == TextFieldType.INPUT ) {
-							var beh:FormFieldBehaviour = new FormFieldBehaviour();
-							beh.activate(chkChild);
-							(chkChild as TextField).tabEnabled = true;
-							(chkChild as TextField).tabIndex = indexCount;
-							indexCount++;
-							addFormElement(beh);
-						}
+					if (chkChild is TextField || chkChild is ITextField) {
+						var ffBehaviour:FormFieldBehaviour = new FormFieldBehaviour();
+						ffBehaviour.tabIndex = indexCount;
+						indexCount++;
+						var beh:IBehaviour = ffBehaviour;
+						beh.activate(chkChild);
+						addFormElement(beh as IFormElement);
+					}
+					else if (chkChild is ISelectable) {
+						beh = new FormCheckBoxBehaviour();
+						beh.activate(chkChild);
+						addFormElement(beh as IFormElement);
+					}
+					else if (chkChild is ISelectioner) {
+						beh = new FormSelectionBehaviour();
+						beh.activate(chkChild);
+						addFormElement(beh as IFormElement);
 					}
 					continue;
 				}

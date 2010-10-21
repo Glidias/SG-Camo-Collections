@@ -3,11 +3,14 @@
 	import flash.events.Event;	
 
 	/**
-	 * This event is normally used by container-based classes to notify of any content/size
-	 * updates. 
-	 * <br/>This normally results in redrawing of the container's appearance, 
-	 * or updating of attached scrollbars and the like...
+	 * This event has been deprecated from the Camo core under SG-Camo. 
+	 * A plain Flash event of "draw" is dispatched from AbstractDisplay instead.
+	 * However, this class is still kept since some classes still uses this event for enumeration 
+	 * and dispatching. (However, draw handlers should only require a plain Event parameter, 
+	 * since there's no special properties in this event.)
 	 */
+	
+	[Deprecated]
 	public class CamoDisplayEvent extends Event
 	{
 		public static const DRAW : String = "draw";

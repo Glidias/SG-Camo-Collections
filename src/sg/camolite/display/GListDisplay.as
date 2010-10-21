@@ -64,6 +64,8 @@
 			disp.visible = false;
 		}
 		
+
+		
 		
 		public function addListItem (label:String, id:String):DisplayObject {
 			var disp:DisplayObject = new listItemClass() as DisplayObject;
@@ -94,6 +96,10 @@
 		/** @private */
 		protected function getIdOfItem(disp:DisplayObject):String {
 			return disp is IListItem ? (disp as IListItem).id : _targHash[disp];
+		}
+		
+		public function getItemById(id:String):DisplayObject {
+			return _idHash[id];
 		}
 		
 		/** @private */

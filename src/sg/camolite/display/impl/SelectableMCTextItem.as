@@ -15,9 +15,9 @@
 		protected var _index:int = -1;
 				
 		
-		public function SelectableMCTextItem() 
+		public function SelectableMCTextItem(initEventType:String=null) 
 		{
-			super();
+			super(initEventType);
 		}
 		
 		// -- IReflectClass

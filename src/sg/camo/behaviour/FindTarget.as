@@ -24,6 +24,10 @@
 			}
 		}
 		
+		public static function findTextField(targ:Object):TextField {
+			// duplicate of "text" above with casting
+			 return targ is TextField ? targ as TextField : targ is ITextField ? (targ as ITextField).textField : targ is DisplayObjectContainer ? (targ as DisplayObjectContainer).getChildByName("txtLabel") as TextField : null;
+		}
 
 		public static function find(targ:Object, searchStr:String):* {
 			var searchArr:Array = searchStr.split(".");

@@ -58,8 +58,10 @@
 			_defaultScrollProxy = new OpenCloseScrollProxy(this);
 			_iScroll = _defaultScrollProxy;
 			
+			
 			maskShape.graphics.beginFill(0, .4);
 			maskShape.graphics.drawRect(0, 0, 32, 32);
+			display.mask = maskShape;
 			$addChild(maskShape);
 		}
 		
@@ -78,14 +80,15 @@
 			super.draw();
 		}
 		
-		protected function updateMaskShape():void {
+		public function updateMaskShape():void {
 			_maskBounds.x = maskShape.x;
 			_maskBounds.y = maskShape.y;
 			_maskBounds.width = display.width;
 			_maskBounds.height = display.height;
+			
 			maskShape.graphics.clear();
-			maskShape.graphics.beginFill(0, .5);
-			maskShape.graphics.drawRect(-_maskPaddingLeft, -_maskPaddingTop, _maskPaddingLeft + _maskPaddingRight + _maskBounds.width, _maskPaddingTop + _maskPaddingBottom + _maskBounds.height );
+			maskShape.graphics.beginFill(0xFF0000, .5);
+			maskShape.graphics.drawRect(-_maskPaddingLeft, -_maskPaddingTop, _maskPaddingLeft + _maskPaddingRight + _maskBounds.width, _maskPaddingTop + _maskPaddingBottom + _maskBounds.height  );
 		}
 		
 		/**

@@ -99,8 +99,15 @@
 				i++;
 			}
 		}
+		
+		public function get removeChildHandlerMethod ():Function {
+			return removeChildHandler;
+		}
+		public function get addChildHandlingMethod():Function {
+			return addChildHandler;
+		}
 
-		override protected function reDrawHandler(e:CamoDisplayEvent):void {
+		override protected function reDrawHandler(e:Event):void {
 			if (!e.bubbles) return;  // non bubbling events assumed no resizing occured
 			
 		

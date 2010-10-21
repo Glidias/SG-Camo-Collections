@@ -577,7 +577,7 @@
 			
 			updateContainerDimensions();
 		}
-		override protected function reDrawHandler(e:CamoDisplayEvent):void {
+		override protected function reDrawHandler(e:Event):void {
 			if (!e.bubbles) return;  // assumed non-bubbling events denote non-size/layout changed events
 			
 			var node:DivNode;

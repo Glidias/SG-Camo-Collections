@@ -1,5 +1,7 @@
 ﻿package sg.camo.behaviour {
+	import flash.display.DisplayObject;
 	import flash.events.IEventDispatcher;
+	import sg.camo.form.FormEvent;
 	import sg.camo.form.FormValidator;
 	import flash.text.TextField;
 	import sg.camo.interfaces.IBehaviour;
@@ -58,7 +60,8 @@
 		
 		protected var _key:String = "";
 		
-		
+		public var tabIndex:int = -1;
+
 		/** @private */protected var _activated:Boolean = false;
 		private var prevInput			:String;						//-- the string that was previously in the input field
 		private var initialTxt			:String;						//-- initial display txt
@@ -76,22 +79,22 @@
 		
 		public static const FOCUS_IN:String = "FormFieldBehaviour.FOCUS_IN";
 		public static const FOCUS_OUT:String = "FormFieldBehaviour.FOCUS_OUT";
-		public static const ERROR:String = "error";
-		public static const VALID:String = "valid";
+
 		
 		/**
 		 *  Default instantiation value. Sets default error textformat to use for all textfields.
 		 */
-		public static var DEFAULT_ERROR_FORMAT:TextFormat = new TextFormat(null, null, 0xFF0000);
+		public static var DEFAULT_ERROR_FORMAT:TextFormat; // new TextFormat(null, null, 0xFF0000);
 		/**
 		 * Default instantiation value. Flag to determine if FormFieldBehaviour automatically sets maximum characters when "fieldType" is set.
 		 */
-		public static var AUTO_SET_MAXCHARS:Boolean = false;
+		public static var AUTO_SET_MAXCHARS:Boolean = true;
 		
 		// Delimiters to identify settings (quick notation for Flash-based staged textfields)
 		public static const OPTIONAL_PREFIX:String = "~~~";
 		public static const DEFAULT_MSG_DELIMITER:String = "!--";
 		public static const ERROR_MSG_DELIMITER:String = "&--";
+	
 		
 		/** @private */
 		protected var _autoSetMaxChars:Boolean;
@@ -119,6 +122,16 @@
 			return _targField;
 		}
 		
+		public function get target():* {
+			return _targField;
+		}
+		
+		public function set optional(val:Boolean):void {
+			_optional = val;
+		}
+		public function get optional():Boolean {
+			return _optional;
+		}
 		
 		public function get behaviourName():String {
 			var suffix:String = _targField != null ? "_" + _targField.name : "";
@@ -136,12 +149,15 @@
 			_targDispatcher = targ as IEventDispatcher;
 			if (_targDispatcher == null) throw new Error("Target isn't an IEventDispatcher:"+targ);
 			
+			var targDisp:DisplayObject = targ as DisplayObject;
+			
 			var target:TextField = targ is TextField ? targ as TextField : targ is ITextField ? (targ as ITextField).textField : null;
 			if (target == null) {
 				trace("FormFieldBehaviour activate() halt. targ as TextField is null!");
 			}
 			_activated = true;
 			_targField = target;
+			if (tabIndex > -1) _targField.tabIndex = tabIndex;
 			
 			
 			//trace("Activating new:"+_targField.name);
@@ -174,7 +190,7 @@
 			_targField.text = initialTxt;
 	
 			if (!Boolean(_key) ) {
-				var nameSplit:Array = target.name.split("$");
+				var nameSplit:Array = targDisp.name.split("$");
 				_key = nameSplit[0];
 				if (nameSplit.length < 1) return;
 				fieldType = nameSplit[1];
@@ -209,10 +225,7 @@
 		
 		protected function resetTextField():void {
 			if (_defaultTxtFormat!=null) _targField.setTextFormat(_defaultTxtFormat);
-			if (defaultMsg != "") {
-				_targField.text = defaultMsg;
-				_targField.displayAsPassword = false;
-			}
+			_targField.text = defaultMsg;
 		}
 		
 		/**
@@ -254,9 +267,8 @@
 				}
 				if (_errorTxtFormat != null) {
 					_targField.setTextFormat(_errorTxtFormat);
-					//_targField.defaultTextFormat = _errorTxtFormat;
 				}
-				_targDispatcher.dispatchEvent( new Event(ERROR) );
+				_targDispatcher.dispatchEvent( new FormEvent(FormEvent.ERROR) );
 			}
 			else {
 				if (prevInput != "" && prevInput != defaultMsg)  {
@@ -267,7 +279,7 @@
 					_targField.defaultTextFormat = _defaultTxtFormat;
 					
 				}
-				_targDispatcher.dispatchEvent( new Event(VALID) );
+				_targDispatcher.dispatchEvent( new FormEvent(FormEvent.VALID) );
 			}
 		}
 		
@@ -385,7 +397,7 @@
 		}
 		
 		
-		/**
+	/**
 		 * @private
 		 * @param	type
 		 * @param	maxChar
@@ -399,7 +411,7 @@
 					setMaxChar = 60;
 					break;
 				case "url":
-					setRestrict(true, true, true, true, false, "//.:-_");
+					setRestrict(true, true, true, true, true, "//.:-_&?");
 					setMaxChar = 80;
 					break;
 				case "name":
@@ -410,8 +422,30 @@
 					setRestrict(true, false, true, false, false);
 					setMaxChar = 30;
 					break;
+				case "DD":
+				case "day":
+					setRestrict(true, false, false, true, false);
+					if (type === "DD" )_targField.text = defaultMsg = "DD";
+					setMaxChar = 2;
+				break;
+				case "MM":
+				case "month":
+					setRestrict(true, false, false, true, false);
+					if (type === "MM" ) _targField.text = defaultMsg = "MM";
+					setMaxChar = 2;
+				break;
+				case "YYYY":
+				case "year":
+					setRestrict(true, false, false, true, false);
+					if (type === "YYYY" ) _targField.text = defaultMsg = "YYYY";
+					setMaxChar = 4;
+				break;
 				case "number":
 					setRestrict(true, false, false, true, false);
+					setMaxChar = 20;
+					break;
+				case "phone":
+					setRestrict(true, false, false, true, false, "\\-");
 					setMaxChar = 20;
 					break;
 				case "password":
@@ -420,7 +454,7 @@
 					isPassword = true;
 					break;
 				case "fullname":
-					setRestrict(true, true, true, false, false, " ");
+					setRestrict(true, true, true, false, false, " /',!:-_&?");
 					setMaxChar = 40;
 					break;
 				case "fullnameUpper":
@@ -430,6 +464,10 @@
 				case "msg":
 					setRestrict(true, true, true, true, true, " ");
 					setMaxChar = 150;
+					break;
+				case "shortMsg":
+					setRestrict(true, true, true, true, true, " ");
+					setMaxChar = 50;
 					break;
 				default:
 					setMaxChar = 40;

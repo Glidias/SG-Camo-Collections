@@ -10,7 +10,7 @@
 	 * since there's no special properties in this event.)
 	 */
 	
-	[Deprecated]
+	//[Deprecated]
 	public class CamoDisplayEvent extends Event
 	{
 		public static const DRAW : String = "draw";

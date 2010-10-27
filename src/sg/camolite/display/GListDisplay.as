@@ -120,8 +120,9 @@
 			super.destroy();
 			_idHash = null;
 
+			var des:IDestroyable;
 			for (var i:* in _targHash) {
-				delete _targHash[i];
+				if ( (des=i as IDestroyable) ) des.destroy();
 			}
 			_targHash = null;
 

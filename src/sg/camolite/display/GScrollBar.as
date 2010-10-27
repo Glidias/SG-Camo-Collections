@@ -254,7 +254,7 @@
 		 */
 		public function resetScrollbar():void {
 			scrollScrub.y = _scrubStartY;
-			//scrubMove();
+			scrubMove();
 			var chkTarget:IScrollable = _defaultScrollProxy.target; //|| _scrollableTarget;
 			if (chkTarget != null) {
 				if (isHorizontal) chkTarget.scrollH = 0
@@ -612,7 +612,7 @@
 			if (_holdInterval > 0) _holdTimer.start ()
 			else {
 				moveTimerHandler();
-				_moveTimer.start();
+				_moveTimer.start();	
 			}
 			
 

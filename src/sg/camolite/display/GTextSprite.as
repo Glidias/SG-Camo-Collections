@@ -15,7 +15,7 @@
 
 		
 		public function GTextSprite() {
-			
+			_textField = _textField || addChild(new TextField()) as TextField;
 		}
 		
 		// -- IReflectClass

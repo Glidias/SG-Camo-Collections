@@ -33,7 +33,7 @@
 			child.y = lastChild.y;
 			if (child.x + child.width > _disp.width) {
 				child.x  = 0;
-				child.y += child.height + spacing;
+				child.y += child.height;
 			}
 		}
 		

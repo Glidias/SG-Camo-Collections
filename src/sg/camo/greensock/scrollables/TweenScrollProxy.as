@@ -16,6 +16,9 @@
 		/** Total maximum duration allowed for tween */
 		public var maxDuration:Number = 1.3;
 		
+		/** Total minimum duration allowed for tween */
+		public var minDuration:Number = .3;
+		
 		/**  Average duration per item length */
 		public var itemLengthDuration:Number = .5;  
 		
@@ -35,8 +38,9 @@
 		
 		override public function set scrollH (ratio:Number):void {
 			var dest:Number = _x + getDestScrollH(ratio);
-			var tarDuration:Number = (diffX(dest) / itemLength) * itemLengthDuration;
-			tarDuration = tarDuration > maxDuration ? maxDuration : tarDuration;
+
+			var tarDuration:Number = itemLength > 0 ? (diffX(dest) / itemLength) * itemLengthDuration : (diffX(dest) *.5) * itemLengthDuration;
+			tarDuration = tarDuration > maxDuration ? maxDuration : tarDuration < minDuration ? minDuration : tarDuration;
 			var $onUpdate:Function = onUpdate!=null ? onUpdate:  scrollContainer.dispatchEvent;
 			var $onUpdateParams:Array = onUpdate!=null ? onUpdateParams : [scrollEvent];
 			var $onComplete:Function = onComplete!=null ? onComplete : scrollContainer.dispatchEvent;
@@ -45,13 +49,14 @@
 		}
 		override public function set scrollV (ratio:Number):void {
 			var dest:Number = _y + getDestScrollV(ratio);
-			var tarDuration:Number = (diffY(dest) / itemLength) * itemLengthDuration;
-			tarDuration = tarDuration > maxDuration ? maxDuration : tarDuration;
+			var tarDuration:Number = itemLength > 0 ? (diffY(dest) / itemLength) * itemLengthDuration : (diffX(dest) *.5) * itemLengthDuration;
+			tarDuration = tarDuration > maxDuration ? maxDuration :  tarDuration < minDuration ? minDuration : tarDuration;
 			var $onUpdate:Function = onUpdate!=null ? onUpdate:  scrollContainer.dispatchEvent;
 			var $onUpdateParams:Array = onUpdate!=null ? onUpdateParams : [scrollEvent];
 			var $onComplete:Function = onComplete!=null ? onComplete : scrollContainer.dispatchEvent;
 			var $onCompleteParams:Array = onComplete!=null ? onCompleteParams : [scrollEvent];
 			TweenLite.to(scrollContent, tarDuration, { y:dest, ease:ease, onUpdate:$onUpdate, onUpdateParams:$onUpdateParams, onComplete:$onComplete, onCompleteParams:$onCompleteParams } );
+			
 		}
 		
 		override public function resetScroll():void {

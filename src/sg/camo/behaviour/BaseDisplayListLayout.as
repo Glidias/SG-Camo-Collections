@@ -69,6 +69,8 @@
 			var lastChild:DisplayObject =  curIndex > 0 ? _disp.getChildAt(curIndex - 1) : null;
 			arrangeFromLastChild(child, lastChild);
 			
+			lastChild = child;
+			
 			curIndex++;
 			while ( curIndex < numChildren ) {
 				child = _disp.getChildAt(curIndex);
